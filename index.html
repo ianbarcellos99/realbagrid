@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Real Bagrid FC</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700;900&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+<!-- ═══════════════════════════════════════════════════════
+     FIREBASE CONFIG — substitua pelos seus dados
+     1. Acesse console.firebase.google.com
+     2. Crie um projeto → Realtime Database → criar banco
+     3. Vá em Configurações do projeto → Seus apps → Web
+     4. Cole as credenciais abaixo
+════════════════════════════════════════════════════════ -->
+<script type="module">
+  import { initializeApp }
+    from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+  import { getDatabase, ref, set, get, push, onValue, remove, update }
+    from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey:            "AIzaSyDhAR1leLGRK6Nxp5EQUIxGK2JyRbfsrz0",
+    authDomain:        "realbagrid-1134e.firebaseapp.com",
+    databaseURL:       "https://realbagrid-1134e-default-rtdb.firebaseio.com",
+    projectId:         "realbagrid-1134e",
+    storageBucket:     "realbagrid-1134e.firebasestorage.app",
+    messagingSenderId: "114041452488",
+    appId:             "1:114041452488:web:37e0d4cee20217677572fd"
+  };
+
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+  window._db      = db;
+  window._ref     = ref;
+  window._set     = set;
+  window._get     = get;
+  window._push    = push;
+  window._onValue = onValue;
+  window._remove  = remove;
+  window._update  = update;
+  document.dispatchEvent(new Event('firebaseReady'));
+</script>
+
+<style>
+:root {
+  --ink:   #08080d;
+  --ink2:  #10101a;
+  --ink3:  #1a1a28;
+  --azul:  #1d6fff;
+  --azul2: #0049d9;
+  --azulv: #5599ff;
+  --br:    #f0f0ea;
+  --pt:    #a0a0bc;
+  --div:   rgba(255,255,255,0.07);
+  --gold:  #f5c518;
+  --red:   #ff4444;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--br);font-family:'Barlow',sans-serif;min-height:100vh;overflow-x:hidden}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 100% 55% at 50% 0%,rgba(29,111,255,.13) 0%,transparent 65%),
+    repeating-linear-gradient(0deg,transparent,transparent 47px,rgba(255,255,255,.018) 47px,rgba(255,255,255,.018) 48px),
+    repeating-linear-gradient(90deg,transparent,transparent 47px,rgba(255,255,255,.018) 47px,rgba(255,255,255,.018) 48px)}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:50;height:68px;display:flex;align-items:center;
+  justify-content:space-between;padding:0 2rem;
+  background:rgba(8,8,13,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--div)}
+
+/* ═══════════════════════════════════════════════════════
+   LOGO - INSTRUÇÕES PARA PERSONALIZAÇÃO
+   ═══════════════════════════════════════════════════════
+   Para aumentar/diminuir: altere width e height em .escudo
+   Para mudar o brilho azul: altere o valor em filter
+   Para trocar a imagem: substitua o src no HTML (linha ~287)
+   ═══════════════════════════════════════════════════════ */
+.logo{display:flex;align-items:center;gap:13px;text-decoration:none;cursor:pointer}
+.escudo{
+  width: 65px;    /* ← ALTERE AQUI o tamanho (era 42px) */
+  height: 65px;   /* ← ALTERE AQUI o tamanho (era 50px) */
+  flex-shrink:0;
+  object-fit: contain;  /* mantém as proporções */
+  filter:drop-shadow(0 0 12px rgba(29,111,255,.6)); /* brilho azul */
+}
+.logo-words{display:flex;flex-direction:column;line-height:1}
+.logo-words b{font-family:'Bebas Neue',sans-serif;font-size:1.75rem;letter-spacing:3px;color:var(--br)}
+.logo-words small{font-family:'Barlow Condensed',sans-serif;font-size:.6rem;font-weight:700;
+  letter-spacing:5px;color:var(--azul);text-transform:uppercase;margin-top:1px}
+nav{display:flex;align-items:center;gap:4px}
+.nav-btn{background:none;border:none;cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+  font-size:.85rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--pt);padding:7px 15px;border-radius:6px;transition:color .2s,background .2s;position:relative}
+.nav-btn::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:0;height:2px;background:var(--azul);border-radius:2px;transition:width .2s}
+.nav-btn:hover{color:var(--br);background:rgba(29,111,255,.1)}
+.nav-btn.on{color:var(--azulv)}
+.nav-btn.on::after{width:60%}
+.btn-adm{margin-left:10px;background:var(--azul2)!important;color:#fff!important}
+.btn-adm:hover{background:var(--azul)!important}
+.btn-adm::after{display:none!important}
+
+/* LAYOUT */
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:2rem 1.5rem}
+.page{display:none}.page.on{display:block}
+
+/* HERO */
+.hero{text-align:center;padding:3rem 0 2.5rem}
+.hero-pill{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-size:.7rem;
+  font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--azul);
+  border:1px solid rgba(29,111,255,.4);border-radius:20px;padding:4px 14px;margin-bottom:14px}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.8rem,8vw,5.5rem);
+  letter-spacing:4px;line-height:.92;text-shadow:0 0 60px rgba(29,111,255,.35)}
+.hero h1 em{color:var(--azul);font-style:normal;display:block}
+.hero-sub{font-family:'Barlow Condensed',sans-serif;font-size:.9rem;font-weight:600;
+  letter-spacing:3px;text-transform:uppercase;color:var(--pt);margin-top:14px}
+
+/* SECTION HEADER */
+.sh{display:flex;align-items:center;gap:12px;margin-bottom:1.4rem}
+.sh h2{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:3px}
+.sh .bar{flex:1;height:1px;background:linear-gradient(to right,rgba(29,111,255,.5),transparent)}
+.sh .tag{font-family:'Barlow Condensed',sans-serif;font-size:.65rem;font-weight:700;
+  letter-spacing:3px;text-transform:uppercase;color:var(--azul);
+  border:1px solid rgba(29,111,255,.3);border-radius:3px;padding:3px 9px}
+
+/* PANEL */
+.panel{background:rgba(16,16,26,.85);border:1px solid var(--div);border-radius:14px;
+  overflow:hidden;backdrop-filter:blur(8px)}
+
+/* STANDINGS */
+.sc{display:grid;grid-template-columns:36px 1fr 52px 46px 46px 46px 62px 52px 52px;
+  padding:10px 18px;background:rgba(29,111,255,.09);border-bottom:1px solid rgba(29,111,255,.2)}
+.sc span{font-family:'Barlow Condensed',sans-serif;font-size:.65rem;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--azul);text-align:center}
+.sc span:nth-child(2){text-align:left}
+.sr{display:grid;grid-template-columns:36px 1fr 52px 46px 46px 46px 62px 52px 52px;
+  padding:13px 18px;border-bottom:1px solid var(--div);align-items:center;
+  transition:background .2s;animation:fadeIn .3s ease both}
+.sr:last-child{border-bottom:none}
+.sr:hover{background:rgba(29,111,255,.05)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.sr span{text-align:center;font-size:.88rem;color:var(--pt)}
+.pos{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;color:var(--pt);text-align:center}
+.pos-1{color:#f5c518}.pos-2{color:#c0c0c0}.pos-3{color:#cd7f32}
+.p-name{display:flex;align-items:center;gap:10px;text-align:left!important;
+  font-weight:700;font-size:.92rem!important;color:var(--br)!important}
+.avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--azul2),var(--azulv));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:.78rem;color:#fff}
+.pts-val{font-family:'Bebas Neue',sans-serif;font-size:1.25rem!important;color:var(--br)!important}
+.aprov-val{font-size:.8rem!important}
+.botm-chip{display:inline-flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#c8940a,#f5c518);color:#000;border-radius:4px;
+  padding:2px 7px;font-family:'Barlow Condensed',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:1px}
+
+/* PARTIDAS */
+.round-block{margin-bottom:14px}
+.round-head{display:flex;align-items:center;justify-content:space-between;
+  padding:11px 20px;background:rgba(29,111,255,.07);border-bottom:1px solid var(--div)}
+.round-head h3{font-family:'Barlow Condensed',sans-serif;font-size:.78rem;font-weight:700;
+  letter-spacing:3px;text-transform:uppercase;color:var(--azulv)}
+.round-date{font-size:.78rem;color:var(--pt)}
+.match-card{padding:16px 20px;border-bottom:1px solid var(--div);
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.match-card:last-child{border-bottom:none}
+.match-teams{display:flex;align-items:center;gap:14px;flex:1}
+.t-name{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;
+  color:var(--br);letter-spacing:.5px;min-width:100px;text-align:right}
+.t-name.away{text-align:left}
+.score-box{display:flex;align-items:center;gap:6px}
+.score-n{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--br);width:34px;text-align:center}
+.score-sep{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--pt)}
+.match-meta{display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:4px 10px;
+  font-family:'Barlow Condensed',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.5px}
+.chip-gold{background:rgba(245,197,24,.1);border:1px solid rgba(245,197,24,.3);color:var(--gold)}
+.chip-red{background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.3);color:var(--red)}
+.chip-blue{background:rgba(29,111,255,.1);border:1px solid rgba(29,111,255,.3);color:var(--azulv)}
+.players-row{font-size:.78rem;color:var(--pt);margin-top:2px}
+
+/* VOTAÇÃO */
+.vote-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:1.2rem}
+.vote-card{background:rgba(255,255,255,.04);border:1px solid var(--div);border-radius:10px;
+  padding:16px 14px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.vote-card::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(29,111,255,.15),transparent);opacity:0;transition:opacity .2s}
+.vote-card:hover::before{opacity:1}
+.vote-card:hover{border-color:rgba(29,111,255,.5);transform:translateY(-2px)}
+.vote-card .v-avatar{width:50px;height:50px;border-radius:50%;margin:0 auto 10px;
+  background:linear-gradient(135deg,var(--azul2),var(--azulv));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#fff}
+.vote-card .v-name{font-family:'Barlow Condensed',sans-serif;font-size:.95rem;font-weight:700;
+  letter-spacing:1px;color:var(--br)}
+.vote-card .v-votes{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--azulv);margin-top:6px}
+.vote-card .v-bar-wrap{height:4px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:8px}
+.vote-card .v-bar{height:100%;background:var(--azul);border-radius:2px;transition:width .4s ease}
+
+/* MODALS */
+.overlay{display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.88);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center}
+.overlay.on{display:flex}
+.modal{background:var(--ink2);border:1px solid rgba(29,111,255,.25);border-radius:16px;
+  padding:2rem;width:92%;max-width:540px;max-height:90vh;overflow-y:auto;position:relative}
+.modal.lg{max-width:760px}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:3px;margin-bottom:1.4rem}
+.x-btn{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--pt);
+  font-size:1.3rem;cursor:pointer;padding:4px 8px;border-radius:6px;transition:all .2s}
+.x-btn:hover{color:var(--br);background:var(--ink3)}
+
+/* FORM */
+label{display:block;font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--pt);margin:14px 0 5px}
+input[type=text],input[type=number],input[type=password],input[type=date],select,textarea{
+  width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;padding:10px 13px;color:var(--br);font-family:'Barlow',sans-serif;
+  font-size:.93rem;outline:none;transition:border .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--azul);background:rgba(29,111,255,.07)}
+select option{background:#14141e}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.pcheck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:7px;margin-top:6px}
+.pcheck{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);
+  border:1px solid var(--div);border-radius:8px;padding:8px 11px;cursor:pointer;transition:all .2s}
+.pcheck:hover{border-color:rgba(29,111,255,.4);background:rgba(29,111,255,.07)}
+.pcheck input{width:auto;cursor:pointer;accent-color:var(--azul)}
+.pcheck span{font-family:'Barlow Condensed',sans-serif;font-size:.83rem;font-weight:600}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:10px 22px;border-radius:8px;border:none;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-size:.87rem;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;transition:all .2s}
+.btn-pri{background:var(--azul);color:#fff}.btn-pri:hover{background:var(--azulv)}
+.btn-sec{background:var(--ink3);color:var(--br)}.btn-sec:hover{background:#28283a}
+.btn-del{background:rgba(255,68,68,.1);color:var(--red);border:1px solid rgba(255,68,68,.25)}
+.btn-del:hover{background:rgba(255,68,68,.2)}
+.btn-sm{padding:6px 12px;font-size:.72rem}
+.mactions{display:flex;gap:10px;justify-content:flex-end;
+  margin-top:1.4rem;padding-top:1rem;border-top:1px solid var(--div)}
+
+/* ADMIN TABS */
+.atabs{display:flex;gap:4px;padding:5px;background:rgba(255,255,255,.03);
+  border:1px solid var(--div);border-radius:10px;margin-bottom:1.4rem}
+.atab{flex:1;padding:9px;background:none;border:none;color:var(--pt);cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-size:.78rem;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;border-radius:7px;transition:all .2s}
+.atab.on{background:var(--azul2);color:#fff}
+.asec{display:none}.asec.on{display:block}
+.ilist{display:flex;flex-direction:column;gap:7px;margin-bottom:.8rem;max-height:200px;overflow-y:auto}
+.icard{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:rgba(255,255,255,.04);border:1px solid var(--div);border-radius:9px;padding:10px 13px}
+.icard-info .iname{font-family:'Barlow Condensed',sans-serif;font-size:.9rem;font-weight:700}
+.icard-info .imeta{font-size:.75rem;color:var(--pt);margin-top:2px}
+.icard-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.8rem;right:1.8rem;z-index:9999;
+  background:var(--azul2);color:#fff;padding:11px 20px;border-radius:10px;
+  font-family:'Barlow Condensed',sans-serif;font-size:.88rem;font-weight:700;letter-spacing:1px;
+  opacity:0;transform:translateY(14px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:none}
+
+/* EMPTY */
+.empty{text-align:center;padding:3.5rem 1rem}
+.empty .ico{font-size:2.8rem;opacity:.3;margin-bottom:.8rem}
+.empty p{font-family:'Barlow Condensed',sans-serif;font-size:.9rem;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;opacity:.4}
+
+/* FIREBASE WARNING */
+.fb-warn{background:rgba(245,197,24,.08);border:1px solid rgba(245,197,24,.3);border-radius:10px;
+  padding:13px 18px;margin-bottom:1.5rem;font-family:'Barlow Condensed',sans-serif;
+  font-size:.83rem;font-weight:600;letter-spacing:.5px;color:var(--gold);display:none}
+.fb-warn.show{display:block}
+
+@media(max-width:680px){
+  .sc,.sr{grid-template-columns:30px 1fr 46px 40px 40px 40px}
+  .sc span:nth-child(n+7),.sr span:nth-child(n+7){display:none}
+  .hero h1{font-size:2.6rem}
+  .t-name{min-width:70px;font-size:.85rem}
+  header{padding:0 1rem}
+  .modal{padding:1.4rem}
+  
+  /* ═══════════════════════════════════════════════════════
+     LOGO EM MOBILE - ajusta tamanho em telas pequenas
+     ═══════════════════════════════════════════════════════ */
+  .escudo{
+    width: 50px;   /* ← ALTERE para ajustar em mobile */
+    height: 50px;  /* ← ALTERE para ajustar em mobile */
+  }
+  .logo-words b{font-size:1.4rem} /* texto menor em mobile */
+}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--ink3);border-radius:3px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo" onclick="showPage('tabela')">
+    <!-- ═══════════════════════════════════════════════════════
+         LOGO EM PNG - Para trocar a imagem:
+         1. Substitua "logo.png" pelo nome do seu arquivo
+         2. Coloque o arquivo na mesma pasta do index.html
+         ═══════════════════════════════════════════════════════ -->
+    <img class="escudo" src="logo.png" alt="Real Bagrid FC">
+    <div class="logo-words"><b>Real Bagrid</b><small>Futebol Clube</small></div>
+  </div>
+  <nav>
+    <button class="nav-btn on"  onclick="showPage('tabela',this)">Tabela</button>
+    <button class="nav-btn"     onclick="showPage('partidas',this)">Partidas</button>
+    <button class="nav-btn"     onclick="showPage('votacao',this)">Votação</button>
+    <button class="nav-btn btn-adm" onclick="openLogin()">Admin</button>
+  </nav>
+</header>
+
+<div class="wrap">
+
+  <div class="fb-warn" id="fb-warn">
+    ⚠️ Firebase não configurado. Substitua as credenciais no topo do arquivo <code>index.html</code> para ativar o banco de dados em nuvem. Até lá os dados ficam salvos só neste navegador.
+  </div>
+
+  <!-- TABELA -->
+  <div id="page-tabela" class="page on">
+    <div class="hero">
+      <div class="hero-pill" id="hero-season">Temporada 2025</div>
+      <h1>Liga<em>Real Bagrid</em></h1>
+      <p class="hero-sub">Pontos Corridos · Por Jogador</p>
+    </div>
+    <div class="sh"><h2>Classificação</h2><div class="bar"></div><div class="tag">Liga</div></div>
+    <div class="panel">
+      <div class="sc">
+        <span>#</span><span>Jogador</span><span>PTS</span>
+        <span>PJ</span><span>V</span><span>APR%</span>
+        <span>BOTM</span><span>GL</span><span>CALOT</span>
+      </div>
+      <div id="standings-body">
+        <div class="empty"><div class="ico">⚽</div><p>Nenhum jogador cadastrado</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARTIDAS -->
+  <div id="page-partidas" class="page">
+    <div class="sh" style="margin-top:1rem"><h2>Partidas</h2><div class="bar"></div><div class="tag">Histórico</div></div>
+    <div id="matches-list">
+      <div class="panel"><div class="empty"><div class="ico">📋</div><p>Nenhuma partida registrada</p></div></div>
+    </div>
+  </div>
+
+  <!-- VOTAÇÃO -->
+  <div id="page-votacao" class="page">
+    <div class="sh" style="margin-top:1rem"><h2>Votação BOTM</h2><div class="bar"></div><div class="tag">Craque do Jogo</div></div>
+    <div id="polls-list">
+      <div class="panel"><div class="empty"><div class="ico">🗳️</div><p>Nenhuma votação aberta</p></div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- LOGIN -->
+<div class="overlay" id="ov-login">
+  <div class="modal">
+    <button class="x-btn" onclick="closeOv('ov-login')">✕</button>
+    <div class="modal-title">Acesso Admin</div>
+    <label>Senha</label>
+    <input type="password" id="login-pw" placeholder="Digite a senha"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <p id="login-err" style="color:var(--red);font-size:.8rem;margin-top:8px;display:none">Senha incorreta.</p>
+    <div class="mactions">
+      <button class="btn btn-sec" onclick="closeOv('ov-login')">Cancelar</button>
+      <button class="btn btn-pri" onclick="doLogin()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="overlay" id="ov-admin">
+  <div class="modal lg">
+    <button class="x-btn" onclick="closeOv('ov-admin')">✕</button>
+    <div class="modal-title">Painel Admin</div>
+    <div class="atabs">
+      <button class="atab on" onclick="aTab('jogadores',this)">Jogadores</button>
+      <button class="atab"    onclick="aTab('partidas',this)">Partidas</button>
+      <button class="atab"    onclick="aTab('votacao',this)">Votações</button>
+      <button class="atab"    onclick="aTab('config',this)">Config</button>
+    </div>
+
+    <!-- JOGADORES -->
+    <div class="asec on" id="asec-jogadores">
+      <div class="ilist" id="adm-players-list"></div>
+      <div class="sh" style="margin-bottom:.6rem"><h2 style="font-size:1.1rem">Adicionar / Editar Jogador</h2></div>
+      <input type="hidden" id="p-id">
+      <label>Nome</label>
+      <input type="text" id="p-nome" placeholder="Nome do jogador">
+      <div class="mactions" style="border:none;padding-top:.8rem;margin-top:.3rem">
+        <button class="btn btn-sec btn-sm" onclick="clearPForm()">Limpar</button>
+        <button class="btn btn-pri" onclick="savePlayer()">Salvar Jogador</button>
+      </div>
+    </div>
+
+    <!-- PARTIDAS -->
+    <div class="asec" id="asec-partidas">
+      <div class="ilist" id="adm-matches-list"></div>
+      <div class="sh" style="margin-bottom:.6rem"><h2 style="font-size:1.1rem">Registrar Partida</h2></div>
+      <input type="hidden" id="m-id">
+      <div class="row2">
+        <div><label>Rodada</label><input type="text" id="m-rodada" placeholder="Ex: Rodada 1"></div>
+        <div><label>Data</label><input type="date" id="m-data"></div>
+      </div>
+      <div class="row2">
+        <div><label>Time 1</label><input type="text" id="m-t1" placeholder="Nome do time"></div>
+        <div><label>Time 2</label><input type="text" id="m-t2" placeholder="Nome do time"></div>
+      </div>
+      <div class="row2">
+        <div><label>Gols Time 1</label><input type="number" id="m-g1" value="0" min="0"></div>
+        <div><label>Gols Time 2</label><input type="number" id="m-g2" value="0" min="0"></div>
+      </div>
+      <label>Jogadores do Time 1 <small style="text-transform:none;letter-spacing:0;font-size:.7rem">(marque quem jogou)</small></label>
+      <div class="pcheck-grid" id="check-t1"></div>
+      <label>Jogadores do Time 2</label>
+      <div class="pcheck-grid" id="check-t2"></div>
+      
+      <label>Gols por jogador <small style="text-transform:none;letter-spacing:0;font-size:.7rem">(opcional - para artilharia)</small></label>
+      <textarea id="m-gols-detail" rows="3" placeholder="Digite quantos gols cada um fez:&#10;João: 2 gols&#10;Pedro: 1 gol&#10;Carlos: 1 gol"></textarea>
+      
+      <label>Caloteiro da rodada <small style="text-transform:none;letter-spacing:0;font-size:.7rem">(quem não pagou)</small></label>
+      <select id="m-caloteiro">
+        <option value="">Nenhum</option>
+      </select>
+      <div class="mactions" style="border:none;padding-top:.8rem;margin-top:.3rem">
+        <button class="btn btn-sec btn-sm" onclick="clearMForm()">Limpar</button>
+        <button class="btn btn-pri" onclick="saveMatch()">Salvar Partida</button>
+      </div>
+    </div>
+
+    <!-- VOTAÇÃO -->
+    <div class="asec" id="asec-votacao">
+      <div class="ilist" id="adm-polls-list"></div>
+      <div class="sh" style="margin-bottom:.6rem"><h2 style="font-size:1.1rem">Criar Votação BOTM</h2></div>
+      <label>Rodada / Identificação</label>
+      <input type="text" id="v-rodada" placeholder="Ex: Rodada 3 — 05/04">
+      <label>Jogadores que participaram</label>
+      <div class="pcheck-grid" id="check-vote"></div>
+      <div style="margin-top:14px">
+        <label>Status inicial</label>
+        <select id="v-status">
+          <option value="open">🟢 Aberta (visível para votação)</option>
+          <option value="closed">🔴 Encerrada</option>
+        </select>
+      </div>
+      <div class="mactions" style="border:none;padding-top:.8rem;margin-top:.3rem">
+        <button class="btn btn-pri" onclick="savePoll()">Criar Votação</button>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div class="asec" id="asec-config">
+      <label>Nome da Temporada</label>
+      <input type="text" id="cfg-season" placeholder="Ex: Temporada 2025">
+      <label>Nova Senha Admin</label>
+      <input type="password" id="cfg-pw1" placeholder="Deixe em branco para manter">
+      <label>Confirmar Nova Senha</label>
+      <input type="password" id="cfg-pw2">
+      <p id="cfg-err" style="color:var(--red);font-size:.8rem;margin-top:8px;display:none"></p>
+      <div class="mactions" style="border:none;padding-top:.8rem;margin-top:.3rem">
+        <button class="btn btn-pri" onclick="saveConfig()">Salvar</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────
+let S = {
+  senha: 'bagrid123',
+  temporada: 'Temporada 2025',
+  jogadores: [],
+  partidas:  [],
+  polls:     []
+};
+
+function lsLoad() {
+  try { const d = localStorage.getItem('rb_v3'); if(d) S = JSON.parse(d); } catch(e){}
+}
+function lsSave() {
+  try { localStorage.setItem('rb_v3', JSON.stringify(S)); } catch(e){}
+}
+
+// ─── FIREBASE ────────────────────────────────────────────
+let fbReady = false;
+
+document.addEventListener('firebaseReady', () => {
+  fbReady = true;
+  const db = window._db;
+
+  window._onValue(window._ref(db,'config'), snap => {
+    const c = snap.val();
+    if (c) { if(c.senha) S.senha=c.senha; if(c.temporada) S.temporada=c.temporada; }
+    renderAll();
+  });
+  window._onValue(window._ref(db,'jogadores'), snap => {
+    S.jogadores=[];
+    snap.forEach(c => S.jogadores.push({id:c.key,...c.val()}));
+    renderAll();
+  });
+  window._onValue(window._ref(db,'partidas'), snap => {
+    S.partidas=[];
+    snap.forEach(c => S.partidas.push({id:c.key,...c.val()}));
+    S.partidas.reverse();
+    renderAll();
+  });
+  window._onValue(window._ref(db,'polls'), snap => {
+    S.polls=[];
+    snap.forEach(c => S.polls.push({id:c.key,...c.val()}));
+    S.polls.reverse();
+    renderAll();
+  });
+});
+
+async function fbSet(path,val){if(!fbReady){lsSave();return;}await window._set(window._ref(window._db,path),val);}
+async function fbPush(path,val){if(!fbReady){lsSave();return null;}const r=await window._push(window._ref(window._db,path),val);return r.key;}
+async function fbRemove(path){if(!fbReady){lsSave();return;}await window._remove(window._ref(window._db,path));}
+async function fbUpdate(path,val){if(!fbReady){lsSave();return;}await window._update(window._ref(window._db,path),val);}
+
+// ─── NAV ─────────────────────────────────────────────────
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.getElementById('page-'+id).classList.add('on');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  else { const map={tabela:0,partidas:1,votacao:2}; if(map[id]!==undefined) document.querySelectorAll('.nav-btn')[map[id]].classList.add('on'); }
+}
+
+// ─── MODALS ──────────────────────────────────────────────
+function openLogin(){
+  document.getElementById('login-pw').value='';
+  document.getElementById('login-err').style.display='none';
+  document.getElementById('ov-login').classList.add('on');
+  setTimeout(()=>document.getElementById('login-pw').focus(),120);
+}
+function doLogin(){
+  if(document.getElementById('login-pw').value===S.senha){
+    closeOv('ov-login'); openAdmin();
+  } else { document.getElementById('login-err').style.display='block'; }
+}
+function openAdmin(){
+  renderAdmPlayers(); renderAdmMatches(); renderAdmPolls(); renderPlayerChecks();
+  document.getElementById('cfg-season').value=S.temporada;
+  aTab('jogadores',document.querySelector('.atab'));
+  document.getElementById('ov-admin').classList.add('on');
+}
+function closeOv(id){document.getElementById(id).classList.remove('on');}
+function aTab(id,btn){
+  document.querySelectorAll('.asec').forEach(s=>s.classList.remove('on'));
+  document.getElementById('asec-'+id).classList.add('on');
+  document.querySelectorAll('.atab').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+}
+
+// ─── TOAST ───────────────────────────────────────────────
+function toast(msg,color='var(--azul2)'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.background=color;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+// ─── CALC STANDINGS ──────────────────────────────────────
+function calcStandings(){
+  const map={};
+  S.jogadores.forEach(j=>{ map[j.id]={id:j.id,nome:j.nome,pts:0,pj:0,v:0,gols:0,botm:0,caloteiro:0}; });
+
+  S.partidas.forEach(p=>{
+    const g1=parseInt(p.g1)||0, g2=parseInt(p.g2)||0;
+    const t1=p.p1||[], t2=p.p2||[];
+    let r1,r2;
+    if(g1>g2){r1=3;r2=0;} else if(g1<g2){r1=0;r2=3;} else{r1=1;r2=1;}
+    t1.forEach(pid=>{ if(!map[pid])return; map[pid].pj++; map[pid].pts+=r1; if(r1===3)map[pid].v++; });
+    t2.forEach(pid=>{ if(!map[pid])return; map[pid].pj++; map[pid].pts+=r2; if(r2===3)map[pid].v++; });
+    
+    // Processa gols individuais do campo golsDetail
+    if(p.golsDetail && p.golsDetail.trim()){
+      const lines = p.golsDetail.split('\n');
+      lines.forEach(line => {
+        // Procura por padrões como "João: 2" ou "João 2 gols" ou "João: 2 gols"
+        const match = line.match(/(.+?)[:]\s*(\d+)/);
+        if(match){
+          const playerName = match[1].trim();
+          const goals = parseInt(match[2]) || 0;
+          // Busca jogador por nome (case-insensitive)
+          const player = S.jogadores.find(j => 
+            j.nome.toLowerCase() === playerName.toLowerCase()
+          );
+          if(player && map[player.id]){
+            map[player.id].gols += goals;
+          }
+        }
+      });
+    }
+    
+    // Caloteiro agora usa ID ao invés de nome
+    if(p.caloteiro && map[p.caloteiro]){
+      map[p.caloteiro].caloteiro++;
+    }
+  });
+
+  // BOTM: winner of each closed poll gets +1
+  S.polls.forEach(poll=>{
+    if(!poll.votes) return;
+    let max=0,winnerId=null;
+    Object.entries(poll.votes).forEach(([pid,cnt])=>{ if(cnt>max){max=cnt;winnerId=pid;} });
+    if(winnerId&&map[winnerId]) map[winnerId].botm++;
+  });
+
+  return Object.values(map).sort((a,b)=>{
+    if(b.pts!==a.pts) return b.pts-a.pts;
+    const aprovA=a.pj?a.v/a.pj:0, aprovB=b.pj?b.v/b.pj:0;
+    return aprovB-aprovA;
+  });
+}
+
+// ─── RENDER STANDINGS ────────────────────────────────────
+function renderStandings(){
+  document.getElementById('hero-season').textContent=S.temporada;
+  const el=document.getElementById('standings-body');
+  const data=calcStandings();
+  if(!data.length){
+    el.innerHTML='<div class="empty"><div class="ico">⚽</div><p>Nenhum jogador cadastrado</p></div>'; return;
+  }
+  el.innerHTML=data.map((j,i)=>{
+    const aprov=j.pj?Math.round(j.v/j.pj*100):0;
+    const ini=j.nome.substring(0,2).toUpperCase();
+    const pc=i===0?'pos pos-1':i===1?'pos pos-2':i===2?'pos pos-3':'pos';
+    return `<div class="sr" style="animation-delay:${i*.04}s">
+      <span class="${pc}">${i+1}</span>
+      <span class="p-name"><div class="avatar">${ini}</div>${j.nome}</span>
+      <span class="pts-val">${j.pts}</span>
+      <span>${j.pj}</span><span>${j.v}</span>
+      <span class="aprov-val">${aprov}%</span>
+      <span><span class="botm-chip">⭐ ${j.botm}</span></span>
+      <span>${j.gols}</span><span>${j.caloteiro}</span>
+    </div>`;
+  }).join('');
+}
+
+// ─── RENDER MATCHES ──────────────────────────────────────
+function renderMatches(){
+  const el=document.getElementById('matches-list');
+  if(!S.partidas.length){
+    el.innerHTML='<div class="panel"><div class="empty"><div class="ico">📋</div><p>Nenhuma partida registrada</p></div></div>'; return;
+  }
+  const groups={};
+  S.partidas.forEach(p=>{ if(!groups[p.rodada]) groups[p.rodada]=[]; groups[p.rodada].push(p); });
+  el.innerHTML=Object.entries(groups).map(([rodada,matches])=>`
+    <div class="panel round-block">
+      <div class="round-head">
+        <h3>${rodada}</h3>
+        <span class="round-date">${matches[0].data?fmtDate(matches[0].data):''}</span>
+      </div>
+      ${matches.map(p=>{
+        const pl1=(p.p1||[]).map(id=>nameById(id)).filter(Boolean).join(', ');
+        const pl2=(p.p2||[]).map(id=>nameById(id)).filter(Boolean).join(', ');
+        return `<div class="match-card">
+          <div class="match-teams">
+            <span class="t-name">${p.t1||'Time 1'}</span>
+            <div class="score-box">
+              <span class="score-n">${p.g1||0}</span>
+              <span class="score-sep">×</span>
+              <span class="score-n">${p.g2||0}</span>
+            </div>
+            <span class="t-name away">${p.t2||'Time 2'}</span>
+          </div>
+          <div class="match-meta">
+            ${p.caloteiro?`<div class="chip chip-red">🔴 Caloteiro: ${nameById(p.caloteiro)}</div>`:''}
+            ${p.golsDetail?`<div class="chip chip-blue">⚽ Gols: ${p.golsDetail.replace(/\n/g, ', ')}</div>`:''}
+            ${pl1?`<div class="players-row">${p.t1}: ${pl1}</div>`:''}
+            ${pl2?`<div class="players-row">${p.t2}: ${pl2}</div>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+// ─── RENDER POLLS ────────────────────────────────────────
+function renderPolls(){
+  const el=document.getElementById('polls-list');
+  const open=S.polls.filter(p=>p.status==='open');
+  if(!open.length){
+    el.innerHTML='<div class="panel"><div class="empty"><div class="ico">🗳️</div><p>Nenhuma votação aberta no momento</p></div></div>'; return;
+  }
+  el.innerHTML=open.map(poll=>{
+    const total=Object.values(poll.votes||{}).reduce((a,b)=>a+b,0);
+    const sorted=(poll.players||[]).slice().sort((a,b)=>((poll.votes||{})[b.id]||0)-((poll.votes||{})[a.id]||0));
+    return `<div class="panel" style="margin-bottom:14px">
+      <div class="round-head">
+        <h3>🗳️ ${poll.rodada} — Vote no Craque do Jogo</h3>
+        <span class="round-date">${total} voto${total!==1?'s':''}</span>
+      </div>
+      <div class="vote-grid">
+        ${sorted.map(pl=>{
+          const cnt=(poll.votes||{})[pl.id]||0;
+          const pct=total?Math.round(cnt/total*100):0;
+          const ini=pl.nome.substring(0,2).toUpperCase();
+          return `<div class="vote-card" onclick="castVote('${poll.id}','${pl.id}')">
+            <div class="v-avatar">${ini}</div>
+            <div class="v-name">${pl.nome}</div>
+            <div class="v-votes">${cnt}</div>
+            <div class="v-bar-wrap"><div class="v-bar" style="width:${pct}%"></div></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── CAST VOTE ───────────────────────────────────────────
+async function castVote(pollId, playerId){
+  const poll=S.polls.find(p=>p.id===pollId); if(!poll) return;
+  if(!poll.votes) poll.votes={};
+  poll.votes[playerId]=(poll.votes[playerId]||0)+1;
+  if(fbReady){ await fbSet(`polls/${pollId}/votes/${playerId}`, poll.votes[playerId]); }
+  else { lsSave(); }
+  toast('✅ Voto registrado!','#13803a');
+  renderPolls(); renderStandings();
+}
+
+// ─── SAVE PLAYER ─────────────────────────────────────────
+async function savePlayer(){
+  const nome=document.getElementById('p-nome').value.trim();
+  if(!nome){toast('Digite o nome');return;}
+  const id=document.getElementById('p-id').value;
+  if(id){
+    // EDITANDO jogador existente
+    await fbSet(`jogadores/${id}`,{nome});
+    if(!fbReady){const j=S.jogadores.find(x=>x.id===id);if(j)j.nome=nome;lsSave();}
+    toast('Jogador atualizado!');
+  } else {
+    // ADICIONANDO novo jogador
+    if(fbReady){
+      // Com Firebase: apenas envia, o listener onValue vai atualizar
+      await fbPush('jogadores',{nome});
+      toast('Jogador adicionado!');
+    } else {
+      // Sem Firebase: adiciona localmente
+      const newId = Date.now().toString();
+      S.jogadores.push({id:newId,nome});
+      lsSave();
+      toast('Jogador adicionado!');
+    }
+  }
+  clearPForm(); 
+  // Não precisa chamar renderAdmPlayers se Firebase está ativo, 
+  // o listener já faz isso
+  if(!fbReady){
+    renderAdmPlayers(); 
+    renderPlayerChecks(); 
+    renderStandings();
+  }
+}
+async function deletePlayer(id){
+  if(!confirm('Excluir jogador?')) return;
+  await fbRemove(`jogadores/${id}`);
+  if(!fbReady){S.jogadores=S.jogadores.filter(j=>j.id!==id);lsSave();}
+  renderAdmPlayers(); renderPlayerChecks(); renderStandings(); toast('Removido');
+}
+function editPlayer(id){
+  const j=S.jogadores.find(x=>x.id===id); if(!j) return;
+  document.getElementById('p-id').value=j.id;
+  document.getElementById('p-nome').value=j.nome;
+}
+function clearPForm(){
+  document.getElementById('p-id').value='';
+  document.getElementById('p-nome').value='';
+}
+
+// ─── SAVE MATCH ──────────────────────────────────────────
+async function saveMatch(){
+  const rodada=document.getElementById('m-rodada').value.trim();
+  const t1=document.getElementById('m-t1').value.trim();
+  const t2=document.getElementById('m-t2').value.trim();
+  if(!rodada||!t1||!t2){toast('Preencha rodada e os dois times');return;}
+  const p1=[...document.querySelectorAll('#check-t1 input:checked')].map(x=>x.value);
+  const p2=[...document.querySelectorAll('#check-t2 input:checked')].map(x=>x.value);
+  const data={
+    rodada, data:document.getElementById('m-data').value,
+    t1,t2,
+    g1:parseInt(document.getElementById('m-g1').value)||0,
+    g2:parseInt(document.getElementById('m-g2').value)||0,
+    p1,p2,
+    golsDetail:document.getElementById('m-gols-detail').value.trim(),
+    caloteiro:document.getElementById('m-caloteiro').value.trim()
+  };
+  const mid=document.getElementById('m-id').value;
+  if(mid){
+    // EDITANDO partida existente
+    await fbSet(`partidas/${mid}`,data);
+    if(!fbReady){const idx=S.partidas.findIndex(x=>x.id===mid);if(idx!==-1)S.partidas[idx]={...data,id:mid};lsSave();}
+    toast('Partida atualizada!');
+  } else {
+    // ADICIONANDO nova partida
+    if(fbReady){
+      await fbPush('partidas',data);
+      toast('Partida registrada!');
+    } else {
+      S.partidas.unshift({...data,id:Date.now().toString()});
+      lsSave();
+      toast('Partida registrada!');
+    }
+  }
+  clearMForm(); 
+  if(!fbReady){
+    renderAdmMatches(); 
+    renderMatches(); 
+    renderStandings();
+  }
+}
+async function deleteMatch(id){
+  if(!confirm('Excluir partida?')) return;
+  await fbRemove(`partidas/${id}`);
+  if(!fbReady){S.partidas=S.partidas.filter(p=>p.id!==id);lsSave();}
+  renderAdmMatches(); renderMatches(); renderStandings(); toast('Removida');
+}
+function editMatch(id){
+  const p=S.partidas.find(x=>x.id===id); if(!p) return;
+  document.getElementById('m-id').value=p.id;
+  document.getElementById('m-rodada').value=p.rodada;
+  document.getElementById('m-data').value=p.data||'';
+  document.getElementById('m-t1').value=p.t1;
+  document.getElementById('m-t2').value=p.t2;
+  document.getElementById('m-g1').value=p.g1;
+  document.getElementById('m-g2').value=p.g2;
+  document.getElementById('m-gols-detail').value=p.golsDetail||'';
+  document.getElementById('m-caloteiro').value=p.caloteiro||'';
+  document.querySelectorAll('#check-t1 input').forEach(cb=>{ cb.checked=(p.p1||[]).includes(cb.value); });
+  document.querySelectorAll('#check-t2 input').forEach(cb=>{ cb.checked=(p.p2||[]).includes(cb.value); });
+  aTab('partidas',document.querySelectorAll('.atab')[1]);
+}
+function clearMForm(){
+  ['m-id','m-rodada','m-t1','m-t2','m-gols-detail','m-caloteiro'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('m-g1').value=0; document.getElementById('m-g2').value=0;
+  document.getElementById('m-data').value='';
+  document.querySelectorAll('#check-t1 input,#check-t2 input').forEach(cb=>cb.checked=false);
+}
+
+// ─── SAVE POLL ───────────────────────────────────────────
+async function savePoll(){
+  const rodada=document.getElementById('v-rodada').value.trim();
+  if(!rodada){toast('Digite o nome da rodada');return;}
+  const players=[...document.querySelectorAll('#check-vote input:checked')].map(cb=>({id:cb.value,nome:cb.dataset.nome}));
+  if(!players.length){toast('Selecione ao menos 1 jogador');return;}
+  const data={rodada,players,votes:{},status:document.getElementById('v-status').value};
+  
+  if(fbReady){
+    await fbPush('polls',data);
+    toast('Votação criada!','#13803a');
+  } else {
+    S.polls.unshift({...data,id:Date.now().toString()});
+    lsSave();
+    toast('Votação criada!','#13803a');
+  }
+  
+  document.getElementById('v-rodada').value='';
+  document.querySelectorAll('#check-vote input').forEach(cb=>cb.checked=false);
+  if(!fbReady){
+    renderAdmPolls(); 
+    renderPolls();
+  }
+}
+async function deletePoll(id){
+  if(!confirm('Excluir votação?')) return;
+  await fbRemove(`polls/${id}`);
+  if(!fbReady){S.polls=S.polls.filter(p=>p.id!==id);lsSave();}
+  renderAdmPolls(); renderPolls(); renderStandings(); toast('Removida');
+}
+async function togglePoll(id){
+  const poll=S.polls.find(p=>p.id===id); if(!poll) return;
+  const ns=poll.status==='open'?'closed':'open';
+  await fbUpdate(`polls/${id}`,{status:ns});
+  if(!fbReady){poll.status=ns;lsSave();}
+  renderAdmPolls(); renderPolls();
+  toast(ns==='open'?'Votação aberta!':'Votação encerrada!');
+}
+
+// ─── SAVE CONFIG ─────────────────────────────────────────
+async function saveConfig(){
+  const temporada=document.getElementById('cfg-season').value.trim();
+  const pw1=document.getElementById('cfg-pw1').value;
+  const pw2=document.getElementById('cfg-pw2').value;
+  const err=document.getElementById('cfg-err');
+  if(pw1){ if(pw1!==pw2){err.textContent='As senhas não coincidem.';err.style.display='block';return;} S.senha=pw1; }
+  err.style.display='none';
+  if(temporada) S.temporada=temporada;
+  await fbSet('config',{senha:S.senha,temporada:S.temporada});
+  if(!fbReady) lsSave();
+  document.getElementById('cfg-pw1').value=''; document.getElementById('cfg-pw2').value='';
+  document.getElementById('hero-season').textContent=S.temporada;
+  toast('Configurações salvas!');
+}
+
+// ─── ADM LISTS ───────────────────────────────────────────
+function renderAdmPlayers(){
+  const el=document.getElementById('adm-players-list');
+  if(!S.jogadores.length){el.innerHTML='<p style="color:var(--pt);font-size:.8rem;font-family:Barlow Condensed,sans-serif;padding:6px 0">Nenhum jogador</p>';return;}
+  el.innerHTML=S.jogadores.map(j=>`
+    <div class="icard">
+      <div class="icard-info"><div class="iname">${j.nome}</div></div>
+      <div class="icard-actions">
+        <button class="btn btn-sec btn-sm" onclick="editPlayer('${j.id}')">Editar</button>
+        <button class="btn btn-del btn-sm" onclick="deletePlayer('${j.id}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+function renderAdmMatches(){
+  const el=document.getElementById('adm-matches-list');
+  if(!S.partidas.length){el.innerHTML='<p style="color:var(--pt);font-size:.8rem;font-family:Barlow Condensed,sans-serif;padding:6px 0">Nenhuma partida</p>';return;}
+  el.innerHTML=S.partidas.map(p=>`
+    <div class="icard">
+      <div class="icard-info">
+        <div class="iname">${p.rodada} — ${p.t1} ${p.g1}×${p.g2} ${p.t2}</div>
+        <div class="imeta">${p.data?fmtDate(p.data):''}</div>
+      </div>
+      <div class="icard-actions">
+        <button class="btn btn-sec btn-sm" onclick="editMatch('${p.id}')">Editar</button>
+        <button class="btn btn-del btn-sm" onclick="deleteMatch('${p.id}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+function renderAdmPolls(){
+  const el=document.getElementById('adm-polls-list');
+  if(!S.polls.length){el.innerHTML='<p style="color:var(--pt);font-size:.8rem;font-family:Barlow Condensed,sans-serif;padding:6px 0">Nenhuma votação</p>';return;}
+  el.innerHTML=S.polls.map(poll=>{
+    const total=Object.values(poll.votes||{}).reduce((a,b)=>a+b,0);
+    const sl=poll.status==='open'?'🟢 Aberta':'🔴 Encerrada';
+    return `<div class="icard">
+      <div class="icard-info">
+        <div class="iname">${poll.rodada} <small style="color:var(--pt);font-size:.72rem">${sl} · ${total} votos</small></div>
+      </div>
+      <div class="icard-actions">
+        <button class="btn btn-sec btn-sm" onclick="togglePoll('${poll.id}')">${poll.status==='open'?'Encerrar':'Abrir'}</button>
+        <button class="btn btn-del btn-sm" onclick="deletePoll('${poll.id}')">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function renderPlayerChecks(){
+  ['check-t1','check-t2','check-vote'].forEach(cid=>{
+    const el=document.getElementById(cid); if(!el) return;
+    if(!S.jogadores.length){el.innerHTML='<p style="color:var(--pt);font-size:.8rem">Cadastre jogadores primeiro</p>';return;}
+    el.innerHTML=S.jogadores.map(j=>`
+      <label class="pcheck">
+        <input type="checkbox" value="${j.id}" data-nome="${j.nome}">
+        <span>${j.nome}</span>
+      </label>`).join('');
+  });
+  
+  // Popula dropdown de caloteiro
+  const calSelect = document.getElementById('m-caloteiro');
+  if(calSelect){
+    const currentVal = calSelect.value; // mantém seleção atual
+    calSelect.innerHTML = '<option value="">Nenhum</option>' + 
+      S.jogadores.map(j=>`<option value="${j.id}">${j.nome}</option>`).join('');
+    if(currentVal) calSelect.value = currentVal;
+  }
+}
+
+// ─── HELPERS ─────────────────────────────────────────────
+function nameById(id){ const j=S.jogadores.find(x=>x.id===id); return j?j.nome:''; }
+function fmtDate(d){ if(!d) return ''; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
+
+// ─── RENDER ALL ──────────────────────────────────────────
+function renderAll(){
+  renderStandings(); renderMatches(); renderPolls();
+  renderAdmPlayers(); renderAdmMatches(); renderAdmPolls(); renderPlayerChecks();
+}
+
+// ─── INIT ────────────────────────────────────────────────
+lsLoad();
+setTimeout(()=>{ if(!fbReady){ document.getElementById('fb-warn').classList.add('show'); renderAll(); } }, 2500);
+renderAll();
+</script>
+</body>
+</html>
