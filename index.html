@@ -939,17 +939,42 @@ function clearMForm(){
 
 // ─── SAVE POLL ───────────────────────────────────────────
 async function savePoll(){
-  const rodada=document.getElementById('v-rodada').value.trim();
-  if(!rodada){toast('Digite o nome da rodada');return;}
-  const players=[...document.querySelectorAll('#check-vote input:checked')].map(cb=>({id:cb.value,nome:cb.dataset.nome}));
-  if(!players.length){toast('Selecione ao menos 1 jogador');return;}
-  const data={rodada,players,votes:{},status:document.getElementById('v-status').value};
-  await fbPush('polls',data);
-  if(!fbReady){
-    S.polls.unshift({...data,id:Date.now().toString()});
-    lsSave();
-    renderAdmPolls(); renderPolls();
+  const rodada = document.getElementById('v-rodada').value.trim();
+  if(!rodada){
+    toast('Digite o nome da rodada');
+    return;
   }
+
+  const players = [...document.querySelectorAll('#check-vote input:checked')]
+    .map(cb => ({ id: cb.value, nome: cb.dataset.nome }));
+
+  if(!players.length){
+    toast('Selecione ao menos 1 jogador');
+    return;
+  }
+
+  const data = {
+    rodada,
+    players,
+    votes: {},
+    status: document.getElementById('v-status').value
+  };
+
+  if(fbReady){
+    await fbPush('polls', data);
+    // listener do Firebase atualiza a tela automaticamente
+  } else {
+    S.polls.unshift({ ...data, id: Date.now().toString() });
+    lsSave();
+    renderAdmPolls();
+    renderPolls();
+    renderStandings();
+  }
+
+  document.getElementById('v-rodada').value = '';
+  document.querySelectorAll('#check-vote input').forEach(cb => cb.checked = false);
+  toast('Votação criada!', '#13803a');
+}
   // Com Firebase: o listener onValue vai renderizar automaticamente
   document.getElementById('v-rodada').value='';
   document.querySelectorAll('#check-vote input').forEach(cb=>cb.checked=false);
