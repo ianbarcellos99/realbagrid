@@ -619,7 +619,7 @@ S.polls.forEach(poll=>{
   let max = 0;
   let winnerId = null;
 
-  Object.entries(poll.votes).forEach(([pid,cnt])=>{
+  Object.entries(poll.votes).forEach(([pid, cnt]) => {
     if(cnt > max){
       max = cnt;
       winnerId = pid;
