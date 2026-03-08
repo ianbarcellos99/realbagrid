@@ -591,7 +591,6 @@ async function fbSet(path,val){if(!fbReady){lsSave();return;}await window._set(w
 async function fbPush(path,val){if(!fbReady){lsSave();return null;}const r=await window._push(window._ref(window._db,path),val);return r.key;}
 async function fbRemove(path){if(!fbReady){lsSave();return;}await window._remove(window._ref(window._db,path));}
 async function fbUpdate(path,val){if(!fbReady){lsSave();return;}await window._update(window._ref(window._db,path),val);}
-
 // ─── NAV ─────────────────────────────────────────────────
 function showPage(id, btn) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
