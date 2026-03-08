@@ -289,13 +289,143 @@ select option{background:#14141e}
 .fb-warn.show{display:block}
 
 @media(max-width:680px){
-  .sc,.sr{grid-template-columns:30px 1fr 46px 40px 40px 40px}
-  .sc span:nth-child(n+7),.sr span:nth-child(n+7){display:none}
-  .hero h1{font-size:2.6rem}
-  .t-name{min-width:70px;font-size:.85rem}
-  header{padding:0 1rem}
-  .modal{padding:1.4rem}
+  body{
+    overflow-x:hidden;
+  }
+
+  .hero h1{
+    font-size:2.6rem;
+  }
+
+  .t-name{
+    min-width:70px;
+    font-size:.85rem;
+  }
+
+  header{
+    padding:0 1rem;
+  }
+
+  .modal{
+    padding:1.4rem;
+  }
+
+  /* Esconde o cabeçalho da tabela no mobile */
+  .sc{
+    display:none;
+  }
+
+  /* Cada jogador vira um card compacto */
+  .sr{
+    grid-template-columns:34px 1fr 1fr;
+    gap:8px 10px;
+    padding:14px 16px;
+    align-items:start;
+  }
+
+  .sr span{
+    text-align:left;
+  }
+
+  .sr .pos{
+    grid-column:1;
+    grid-row:1 / span 5;
+    text-align:center;
+    padding-top:2px;
+  }
+
+  .sr .p-name{
+    grid-column:2 / 4;
+    grid-row:1;
+  }
+
+  .sr span:nth-child(3){
+    grid-column:2;
+    grid-row:2;
+  }
+
+  .sr span:nth-child(4){
+    grid-column:3;
+    grid-row:2;
+  }
+
+  .sr span:nth-child(5){
+    grid-column:2;
+    grid-row:3;
+  }
+
+  .sr span:nth-child(6){
+    grid-column:3;
+    grid-row:3;
+  }
+
+  .sr span:nth-child(7){
+    grid-column:2;
+    grid-row:4;
+  }
+
+  .sr span:nth-child(8){
+    grid-column:3;
+    grid-row:4;
+  }
+
+  .sr span:nth-child(9){
+    grid-column:2;
+    grid-row:5;
+  }
+
+  .sr span:nth-child(3)::before{
+    content:'PTS ';
+    color:var(--azulv);
+    font-weight:700;
+  }
+
+  .sr span:nth-child(4)::before{
+    content:'PJ ';
+    color:var(--azulv);
+    font-weight:700;
+  }
+
+  .sr span:nth-child(5)::before{
+    content:'V ';
+    color:var(--azulv);
+    font-weight:700;
+  }
+
+  .sr span:nth-child(6)::before{
+    content:'APR ';
+    color:var(--azulv);
+    font-weight:700;
+  }
+
+  .sr span:nth-child(7)::before{
+    content:'BOTM ';
+    color:var(--azulv);
+    font-weight:700;
+  }
+
+  .sr span:nth-child(8)::before{
+    content:'GL ';
+    color:var(--azulv);
+    font-weight:700;
+  }
+
+  .sr span:nth-child(9)::before{
+    content:'CALOTE ';
+    color:var(--azulv);
+    font-weight:700;
+  }
+
+  .sr .pts-val{
+    font-size:1rem !important;
+  }
+
+  .sr .botm-chip{
+    padding:1px 6px;
+    font-size:.64rem;
+  }
 }
+     
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--ink3);border-radius:3px}
@@ -310,12 +440,8 @@ select option{background:#14141e}
   </div>
   <script>
   // Tenta carregar logo.png, se falhar usa placeholder
-  const logoImg = document.getElementById('logo-img');
-  const testImg = new Image();
-  testImg.onload = () => { logoImg.src = 'logo.png'; logoImg.style.display = 'block'; };
-  testImg.onerror = () => { logoImg.src = 'https://via.placeholder.com/60x60/1d6fff/ffffff?text=RB'; logoImg.style.display = 'block'; };
-  testImg.src = 'logo.png';
-  </script>
+<img class="escudo" src="logo.png" alt="Real Bagrid FC">
+       
   <nav>
     <button class="nav-btn on"  onclick="showPage('tabela',this)">Tabela</button>
     <button class="nav-btn"     onclick="showPage('partidas',this)">Partidas</button>
@@ -504,17 +630,26 @@ function lsSave() {
 // ─── FIREBASE ────────────────────────────────────────────
 let fbReady = false;
 let isAdminLogged = false; 
+     
 document.addEventListener('firebaseReady', () => {
   fbReady = true;
   const db = window._db;
 
- window._onValue(window._ref(db, 'config/temporada'), snap => {
-  const temporada = snap.val();
-  if (temporada) {
-    S.temporada = temporada;
-  }
-  renderAll();
-});
+  window._onAuthStateChanged(window._auth, (user) => {
+    isAdminLogged = !!user;
+
+    if(!user){
+      closeOv('ov-admin');
+    }
+  });
+
+  window._onValue(window._ref(db, 'config/temporada'), snap => {
+    const temporada = snap.val();
+    if (temporada) {
+      S.temporada = temporada;
+    }
+    renderAll();
+  });
 
   window._onValue(window._ref(db, 'jogadores'), snap => {
     S.jogadores = [];
@@ -540,68 +675,67 @@ document.addEventListener('firebaseReady', () => {
     renderAll();
   });
 
- window._onValue(window._ref(db, 'partidas'), snap => {
-  S.partidas = [];
+  window._onValue(window._ref(db, 'partidas'), snap => {
+    S.partidas = [];
 
-  snap.forEach(c => {
-    const val = c.val();
+    snap.forEach(c => {
+      const val = c.val();
 
-    if (
-      val &&
-      typeof val === 'object' &&
-      typeof val.rodada === 'string' &&
-      typeof val.t1 === 'string' &&
-      typeof val.t2 === 'string'
-    ) {
-      S.partidas.push({
-        id: c.key,
-        rodada: val.rodada || '',
-        data: val.data || '',
-        t1: val.t1 || '',
-        t2: val.t2 || '',
-        g1: parseInt(val.g1) || 0,
-        g2: parseInt(val.g2) || 0,
-        p1: Array.isArray(val.p1) ? val.p1 : [],
-        p2: Array.isArray(val.p2) ? val.p2 : [],
-        goals: val.goals && typeof val.goals === 'object' ? val.goals : {},
-        caloteiro: val.caloteiro || ''
-      });
-    } else {
-      console.warn('Partida ignorada por formato inválido:', c.key, val);
-    }
+      if (
+        val &&
+        typeof val === 'object' &&
+        typeof val.rodada === 'string' &&
+        typeof val.t1 === 'string' &&
+        typeof val.t2 === 'string'
+      ) {
+        S.partidas.push({
+          id: c.key,
+          rodada: val.rodada || '',
+          data: val.data || '',
+          t1: val.t1 || '',
+          t2: val.t2 || '',
+          g1: parseInt(val.g1) || 0,
+          g2: parseInt(val.g2) || 0,
+          p1: Array.isArray(val.p1) ? val.p1 : [],
+          p2: Array.isArray(val.p2) ? val.p2 : [],
+          goals: val.goals && typeof val.goals === 'object' ? val.goals : {},
+          caloteiro: val.caloteiro || ''
+        });
+      } else {
+        console.warn('Partida ignorada por formato inválido:', c.key, val);
+      }
+    });
+
+    S.partidas.reverse();
+    renderAll();
   });
 
-  S.partidas.reverse();
-  renderAll();
-});
+  window._onValue(window._ref(db, 'polls'), snap => {
+    S.polls = [];
 
- window._onValue(window._ref(db, 'polls'), snap => {
-  S.polls = [];
+    snap.forEach(c => {
+      const val = c.val();
 
-  snap.forEach(c => {
-    const val = c.val();
+      if (
+        val &&
+        typeof val === 'object' &&
+        typeof val.rodada === 'string'
+      ) {
+        S.polls.push({
+          id: c.key,
+          rodada: val.rodada || '',
+          players: Array.isArray(val.players) ? val.players : [],
+          votes: val.votes && typeof val.votes === 'object' ? val.votes : {},
+          status: val.status === 'closed' ? 'closed' : 'open'
+        });
+      } else {
+        console.warn('Votação ignorada por formato inválido:', c.key, val);
+      }
+    });
 
-    if (
-      val &&
-      typeof val === 'object' &&
-      typeof val.rodada === 'string'
-    ) {
-      S.polls.push({
-        id: c.key,
-        rodada: val.rodada || '',
-        players: Array.isArray(val.players) ? val.players : [],
-        votes: val.votes && typeof val.votes === 'object' ? val.votes : {},
-        status: val.status === 'closed' ? 'closed' : 'open'
-      });
-    } else {
-      console.warn('Votação ignorada por formato inválido:', c.key, val);
-    }
+    S.polls.reverse();
+    renderAll();
   });
-
-  S.polls.reverse();
-  renderAll();
-});
-
 });
      
  async function fbSet(path,val){
@@ -625,13 +759,6 @@ async function fbUpdate(path,val){
   await window._update(window._ref(window._db,path),val);
 }
 
-window._onAuthStateChanged(window._auth, (user) => {
-  isAdminLogged = !!user;
-
-  if(!user){
-    closeOv('ov-admin');
-  }
-});
 
 // ─── NAV ─────────────────────────────────────────────────
 function showPage(id, btn) {
