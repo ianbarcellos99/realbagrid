@@ -783,7 +783,12 @@ async function savePlayer(){
 
     toast('Jogador atualizado!');
   } else {
- 
+    if(fbReady){
+      await fbPush('jogadores', { nome });
+      // não adiciona localmente; o listener do Firebase atualiza a lista
+    } else {
+      const newId = Date.now().toString();
+      S.jogadores.push({ id: newId, nome });
       lsSave();
       renderAdmPlayers();
       renderPlayerChecks();
