@@ -687,6 +687,11 @@ S.polls.forEach(poll => {
   }
 });
 
+  return Object.values(map).sort((a,b)=>
+    b.pts-a.pts || b.v-a.v || b.gols-a.gols || a.nome.localeCompare(b.nome)
+  );
+}
+
 // ─── RENDER STANDINGS ────────────────────────────────────
 function renderStandings(){
   const box = document.getElementById('standings-body');
