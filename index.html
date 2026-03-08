@@ -162,18 +162,18 @@ nav{display:flex;align-items:center;gap:4px}
 .pts-val{font-family:'Bebas Neue',sans-serif;font-size:1.25rem!important;color:var(--br)!important}
 .aprov-val{font-size:.8rem!important}
 .botm-chip{
-  display:inline-flex;
+  display:flex;
   align-items:center;
-  justify-content:center;
-  background:linear-gradient(135deg,#f5c518,#ffd84d);
-  color:#000;
-  border-radius:6px;
-  padding:3px 8px;
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:.78rem;
-  font-weight:900;
-  letter-spacing:.8px;
-  box-shadow:0 0 6px rgba(245,197,24,.45);
+  justify-content:flex-start;
+  gap:4px;
+  font-weight:700;
+}
+
+.botm-chip b{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.05rem;
+  letter-spacing:1px;
+  color:#f5c518;
 }
 
 /* PARTIDAS */
@@ -908,7 +908,7 @@ function renderStandings(){
       <span>${j.pj}</span>
       <span>${j.v}</span>
       <span class="aprov-val">${aprov}%</span>
-      <span><span class="botm-chip">⭐ ${j.botm}</span></span>
+      <span class="botm-chip">⭐<b>${j.botm}</b></span>
       <span>${j.gols}</span>
       <span>${j.caloteiro}</span>
     </div>`;
