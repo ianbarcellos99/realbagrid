@@ -139,12 +139,12 @@ nav{display:flex;align-items:center;gap:4px}
   overflow:hidden;backdrop-filter:blur(8px)}
 
 /* STANDINGS */
-.sc{display:grid;grid-template-columns:36px 1fr 52px 46px 46px 46px 62px 52px 52px;
+.sc{display:grid;grid-template-columns:36px 1fr 56px 48px 48px 50px 70px 50px 54px;
   padding:10px 18px;background:rgba(29,111,255,.09);border-bottom:1px solid rgba(29,111,255,.2)}
 .sc span{font-family:'Barlow Condensed',sans-serif;font-size:.65rem;font-weight:700;
   letter-spacing:2px;text-transform:uppercase;color:var(--azul);text-align:center}
 .sc span:nth-child(2){text-align:left}
-.sr{display:grid;grid-template-columns:36px 1fr 52px 46px 46px 46px 62px 52px 52px;
+.sr{display:grid;grid-template-columns:36px 1fr 56px 48px 48px 50px 70px 50px 54px;
   padding:13px 18px;border-bottom:1px solid var(--div);align-items:center;
   transition:background .2s;animation:fadeIn .3s ease both}
 .sr:last-child{border-bottom:none}
@@ -164,18 +164,20 @@ nav{display:flex;align-items:center;gap:4px}
 .botm-chip{
   display:flex;
   align-items:center;
-  justify-content:flex-start;
-  gap:4px;
-  font-weight:700;
+  justify-content:center;
+  gap:6px;
 }
 
-.botm-chip b{
+.star{
+  font-size:.9rem;
+}
+
+.botm-num{
   font-family:'Bebas Neue',sans-serif;
-  font-size:1.05rem;
-  letter-spacing:1px;
+  font-size:1.2rem;
   color:#f5c518;
+  letter-spacing:1px;
 }
-
 /* PARTIDAS */
 .round-block{margin-bottom:14px}
 .round-head{display:flex;align-items:center;justify-content:space-between;
