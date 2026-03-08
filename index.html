@@ -1208,7 +1208,9 @@ function renderAdmPolls(){
       });
 
       return `<div style="margin-top:8px;font-size:.78rem;color:var(--pt);line-height:1.6">
-        ${Object.entries(grouped).map(([player, voters]) => `
+        ${Object.entries(grouped)
+  .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))
+  .map(([player, voters]) => `
           <div style="margin-bottom:6px">
             <strong>${player}</strong> — ${voters.length} voto${voters.length!==1?'s':''}
             <div style="margin-left:10px;color:#aaa">
