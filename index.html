@@ -149,10 +149,60 @@ nav{display:flex;align-items:center;gap:4px}
   transition:background .2s;animation:fadeIn .3s ease both}
 .sr:last-child{border-bottom:none}
 .sr:hover{background:rgba(29,111,255,.05)}
+     .row-top1{
+  background:linear-gradient(90deg,rgba(245,197,24,.10),rgba(245,197,24,.03));
+  border-left:3px solid #f5c518;
+}
+
+.row-top2{
+  background:linear-gradient(90deg,rgba(220,225,230,.08),rgba(220,225,230,.03));
+  border-left:3px solid #cfd5dc;
+}
+
+.row-top3{
+  background:linear-gradient(90deg,rgba(205,127,50,.10),rgba(205,127,50,.03));
+  border-left:3px solid #cd7f32;
+}
+
+.row-top1 .p-name,
+.row-top2 .p-name,
+.row-top3 .p-name{
+  font-weight:800;
+}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .sr span{text-align:center;font-size:.88rem;color:var(--pt)}
-.pos{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;color:var(--pt);text-align:center}
-.pos-1{color:#f5c518}.pos-2{color:#c0c0c0}.pos-3{color:#cd7f32}
+.pos{
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.95rem;
+  color:#fff;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.pos-1{
+  background:linear-gradient(135deg,#d4a514,#f5c518);
+  color:#000;
+  box-shadow:0 0 10px rgba(245,197,24,.35);
+}
+
+.pos-2{
+  background:linear-gradient(135deg,#9ea4ad,#d9dde3);
+  color:#000;
+  box-shadow:0 0 10px rgba(210,215,220,.25);
+}
+
+.pos-3{
+  background:linear-gradient(135deg,#9b5a2e,#cd7f32);
+  color:#fff;
+  box-shadow:0 0 10px rgba(205,127,50,.25);
+}
 .p-name{display:flex;align-items:center;gap:10px;text-align:left!important;
   font-weight:700;font-size:.92rem!important;color:var(--br)!important}
 .avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;
@@ -361,9 +411,17 @@ select option{background:#14141e}
     font-size:.66rem;
   }
 
-  .pos{
-    font-size:.82rem;
-  }
+ .pos{
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.78rem;
+}
 
   .p-name{
     gap:5px;
@@ -929,7 +987,9 @@ function renderStandings(){
     const aprov = j.pj ? Math.round((j.v / j.pj) * 100) : 0;
     const posClass = i===0 ? 'pos-1' : i===1 ? 'pos-2' : i===2 ? 'pos-3' : '';
 
-    return `<div class="sr" style="animation-delay:${i*.04}s">
+    const rowClass = i===0 ? 'row-top1' : i===1 ? 'row-top2' : i===2 ? 'row-top3' : '';
+    return `<div class="sr ${rowClass}" style="animation-delay:${i*.04}s">
+
       <span class="pos ${posClass}">${i+1}</span>
       <span class="p-name">
         <div class="avatar">${ini}</div>${nomeSeguro}
