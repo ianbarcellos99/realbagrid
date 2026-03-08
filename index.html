@@ -317,7 +317,7 @@ select option{background:#14141e}
   <!-- TABELA -->
   <div id="page-tabela" class="page on">
     <div class="hero">
-      <div class="hero-pill" id="hero-season">Temporada 2025</div>
+      <div class="hero-pill" id="hero-season">Temporada 2026</div>
       <h1>Liga<em>Real Bagrid</em></h1>
       <p class="hero-sub">Pontos Corridos · Por Jogador</p>
     </div>
@@ -450,7 +450,7 @@ select option{background:#14141e}
     <!-- CONFIG -->
     <div class="asec" id="asec-config">
       <label>Nome da Temporada</label>
-      <input type="text" id="cfg-season" placeholder="Ex: Temporada 2025">
+      <input type="text" id="cfg-season" placeholder="Ex: Temporada 2026">
       <label>Nova Senha Admin</label>
       <input type="password" id="cfg-pw1" placeholder="Deixe em branco para manter">
       <label>Confirmar Nova Senha</label>
@@ -469,11 +469,12 @@ select option{background:#14141e}
 <script>
 // ─── STATE ───────────────────────────────────────────────
 let S = {
-  senha: 'bagrid123',
-  temporada: 'Temporada 2025',
+  senha: '123123',
+  temporada: 'Temporada 2026',
   jogadores: [],
   partidas:  [],
-  polls:     []
+  polls:     [],
+selectedVotes: {},
 };
 
 function lsLoad() {
@@ -808,7 +809,7 @@ function renderPolls(){
           const nomeSeguro = (pl.nome || '').trim();
           const ini = nomeSeguro ? nomeSeguro.substring(0,2).toUpperCase() : '--';
 
-          return `<div class="vote-card" onclick="castVote('${poll.id}','${pl.id}')">
+          return `<div class="vote-card" onclick="selectVote('${poll.id}','${pl.id}')">
             <div class="v-avatar">${ini}</div>
             <div class="v-name">${nomeSeguro}</div>
             <div class="v-votes">${cnt}</div>
@@ -818,6 +819,11 @@ function renderPolls(){
       </div>
     </div>`;
   }).join('');
+
+     function selectVote(pollId, playerId){
+  S.selectedVotes[pollId] = playerId;
+  renderPolls();
+}
 }
 
 // ─── CAST VOTE ───────────────────────────────────────────
