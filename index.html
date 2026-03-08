@@ -776,6 +776,7 @@ function renderPolls(){
   el.innerHTML = open.map(poll => {
     const votesArr = Object.values(poll.votes || {});
     const total = votesArr.length;
+       const selectedPlayerId = S.selectedVotes[poll.id] || '';
 
     const countByPlayer = {};
     votesArr.forEach(v => {
@@ -808,8 +809,9 @@ function renderPolls(){
           const pct = total ? Math.round((cnt / total) * 100) : 0;
           const nomeSeguro = (pl.nome || '').trim();
           const ini = nomeSeguro ? nomeSeguro.substring(0,2).toUpperCase() : '--';
+             const isSelected = selectedPlayerId === pl.id;
 
-          return `<div class="vote-card" onclick="selectVote('${poll.id}','${pl.id}')">
+          return `<div class="vote-card" onclick="selectVote('${poll.id}','${pl.id}')" style="${isSelected ? 'outline:2px solid var(--gold);transform:scale(1.02);' : ''}">
             <div class="v-avatar">${ini}</div>
             <div class="v-name">${nomeSeguro}</div>
             <div class="v-votes">${cnt}</div>
@@ -819,13 +821,12 @@ function renderPolls(){
       </div>
     </div>`;
   }).join('');
-
+}
+// ─── SELECT VOTE ───────────────────────────────────────────
      function selectVote(pollId, playerId){
   S.selectedVotes[pollId] = playerId;
   renderPolls();
 }
-}
-
 // ─── CAST VOTE ───────────────────────────────────────────
 async function castVote(pollId, playerId){
   const poll = S.polls.find(p => p.id === pollId);
