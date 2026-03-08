@@ -719,9 +719,12 @@ async function savePlayer(){
   const id = document.getElementById('p-id').value;
 
   if(id){
-    // Editando jogador existente
     if(fbReady){
       await fbSet(`jogadores/${id}`, { nome });
+    } else {
+      const j = S.jogadores.find(x => x.id === id);
+      if(j) j.nome = nome;
+      lsSave();
     }
 
     const idx = S.jogadores.findIndex(j => j.id === id);
@@ -729,34 +732,30 @@ async function savePlayer(){
       S.jogadores[idx].nome = nome;
     }
 
-    if(!fbReady){
-      lsSave();
-    }
-
-    renderAll();
+    renderAdmPlayers();
+    renderPlayerChecks();
+    renderStandings();
     toast('Jogador atualizado!');
   } else {
-    // Novo jogador
     let newId;
 
     if(fbReady){
       newId = await fbPush('jogadores', { nome });
     } else {
       newId = Date.now().toString();
+      lsSave();
     }
 
     S.jogadores.push({ id: newId, nome });
 
-    if(!fbReady){
-      lsSave();
-    }
-
-    renderAll();
+    renderAdmPlayers();
+    renderPlayerChecks();
+    renderStandings();
     toast('Jogador adicionado!');
   }
 
   clearPForm();
-}
+}   
 async function deletePlayer(id){
   if(!confirm('Excluir jogador?')) return;
   await fbRemove(`jogadores/${id}`);
