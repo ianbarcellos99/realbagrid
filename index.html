@@ -785,7 +785,7 @@ async function savePlayer(){
   } else {
     if(fbReady){
       await fbPush('jogadores', { nome });
-      // não adiciona localmente; o listener do Firebase atualiza a lista
+      // Firebase listener atualiza a lista automaticamente
     } else {
       const newId = Date.now().toString();
       S.jogadores.push({ id: newId, nome });
