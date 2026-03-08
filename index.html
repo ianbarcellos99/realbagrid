@@ -660,17 +660,25 @@ function calcStandings(){
   });
 
   // BOTM: winner of each closed poll gets +1
-S.polls.forEach(poll=>{
+S.polls.forEach(poll => {
   if(poll.status !== 'closed') return;
   if(!poll.votes) return;
+
+  const countByPlayer = {};
+
+  Object.values(poll.votes).forEach(vote => {
+    if(vote && vote.playerId){
+      countByPlayer[vote.playerId] = (countByPlayer[vote.playerId] || 0) + 1;
+    }
+  });
 
   let max = 0;
   let winnerId = null;
 
-  Object.entries(poll.votes).forEach(([pid, cnt]) => {
-    if(cnt > max){
-      max = cnt;
-      winnerId = pid;
+  Object.entries(countByPlayer).forEach(([playerId, count]) => {
+    if(count > max){
+      max = count;
+      winnerId = playerId;
     }
   });
 
@@ -678,13 +686,6 @@ S.polls.forEach(poll=>{
     map[winnerId].botm++;
   }
 });
-
-  return Object.values(map).sort((a,b)=>{
-    if(b.pts!==a.pts) return b.pts-a.pts;
-    const aprovA=a.pj?a.v/a.pj:0, aprovB=b.pj?b.v/b.pj:0;
-    return aprovB-aprovA;
-  });
-}
 
 // ─── RENDER STANDINGS ────────────────────────────────────
 function renderStandings(){
