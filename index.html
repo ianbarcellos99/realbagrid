@@ -846,6 +846,11 @@ async function castVote(pollId, playerId){
   const poll = S.polls.find(p => p.id === pollId);
   if(!poll) return;
 
+     if(!playerId){
+  toast('Selecione um jogador para votar');
+  return;
+}
+     
   const voterSelect = document.getElementById(`voter-${pollId}`);
   if(!voterSelect || !voterSelect.value){
     toast('Selecione quem está votando');
@@ -879,6 +884,10 @@ async function castVote(pollId, playerId){
   }
 
   toast('✅ Voto registrado!', '#13803a');
+
+  delete S.selectedVotes[pollId];
+  delete S.selectedVoters[pollId];
+     
   renderPolls();
   renderStandings();
 }
@@ -1187,12 +1196,30 @@ function renderAdmPolls(){
     const sl = poll.status === 'open' ? '🟢 Aberta' : '🔴 Encerrada';
 
     const votosHtml = votesArr.length
-      ? `<div style="margin-top:8px;font-size:.78rem;color:var(--pt);line-height:1.5">
-          ${votesArr.map(vote => `
-            <div>• <strong>${vote.voterName || 'Jogador'}</strong> votou em <strong>${vote.playerName || 'Jogador'}</strong></div>
-          `).join('')}
-        </div>`
-      : `<div style="margin-top:8px;font-size:.78rem;color:var(--pt)">Nenhum voto registrado ainda</div>`;
+  ? (() => {
+
+      const grouped = {};
+
+      votesArr.forEach(v => {
+        if(!grouped[v.playerName]){
+          grouped[v.playerName] = [];
+        }
+        grouped[v.playerName].push(v.voterName);
+      });
+
+      return `<div style="margin-top:8px;font-size:.78rem;color:var(--pt);line-height:1.6">
+        ${Object.entries(grouped).map(([player, voters]) => `
+          <div style="margin-bottom:6px">
+            <strong>${player}</strong> — ${voters.length} voto${voters.length!==1?'s':''}
+            <div style="margin-left:10px;color:#aaa">
+              ${voters.map(v => `• ${v}`).join('<br>')}
+            </div>
+          </div>
+        `).join('')}
+      </div>`;
+
+    })()
+  : `<div style="margin-top:8px;font-size:.78rem;color:var(--pt)">Nenhum voto registrado ainda</div>`;
 
     return `<div class="icard">
       <div class="icard-info">
