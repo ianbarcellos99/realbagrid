@@ -623,28 +623,53 @@ function calcStandings(){
 
 // ─── RENDER STANDINGS ────────────────────────────────────
 function renderStandings(){
-  document.getElementById('hero-season').textContent=S.temporada;
-  const el=document.getElementById('standings-body');
-  const data=calcStandings();
-  if(!data.length){
-    el.innerHTML='<div class="empty"><div class="ico">⚽</div><p>Nenhum jogador cadastrado</p></div>'; return;
-  }
-  el.innerHTML=data.map((j,i)=>{
-    const aprov=j.pj?Math.round(j.v/j.pj*100):0;
-    const ini=j.nome.substring(0,2).toUpperCase();
-    const pc=i===0?'pos pos-1':i===1?'pos pos-2':i===2?'pos pos-3':'pos';
+  const box=document.getElementById('standings');
+  const acc={};
+  S.jogadores.forEach(j=>{
+    acc[j.id]={...j,pj:0,v:0,pts:0,botm:0,gols:0,caloteiro:0};
+  });
+
+  S.partidas.forEach(p=>{
+    p.players.forEach(pid=>{
+      if(!acc[pid]) return;
+      acc[pid].pj++;
+      if(pid===p.winner){
+        acc[pid].v++;
+        acc[pid].pts+=3;
+      }
+    });
+    if(p.botm && acc[p.botm]) acc[p.botm].botm++;
+    (p.gols||[]).forEach(g=>{
+      if(acc[g.player]) acc[g.player].gols+=Number(g.count||0);
+    });
+    (p.caloteiro||[]).forEach(cid=>{
+      if(acc[cid]) acc[cid].caloteiro++;
+    });
+  });
+
+  const rows=Object.values(acc).sort((a,b)=>b.pts-a.pts);
+
+  box.innerHTML=rows.map((j,i)=>{
+    const nomeSeguro = (j.nome || '').trim();
+    const ini = nomeSeguro ? nomeSeguro.substring(0,2).toUpperCase() : '--';
+    const aprov = j.pj ? Math.round((j.v/j.pj)*100) : 0;
+    const pc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+
     return `<div class="sr" style="animation-delay:${i*.04}s">
       <span class="${pc}">${i+1}</span>
-      <span class="p-name"><div class="avatar">${ini}</div>${j.nome}</span>
+      <span class="p-name">
+        <div class="avatar">${ini}</div>${nomeSeguro}
+      </span>
       <span class="pts-val">${j.pts}</span>
-      <span>${j.pj}</span><span>${j.v}</span>
+      <span>${j.pj}</span>
+      <span>${j.v}</span>
       <span class="aprov-val">${aprov}%</span>
       <span><span class="botm-chip">⭐ ${j.botm}</span></span>
-      <span>${j.gols}</span><span>${j.caloteiro}</span>
+      <span>${j.gols}</span>
+      <span>${j.caloteiro}</span>
     </div>`;
   }).join('');
 }
-
 // ─── RENDER MATCHES ──────────────────────────────────────
 function renderMatches(){
   const el=document.getElementById('matches-list');
