@@ -819,6 +819,12 @@ function renderPolls(){
           </div>`;
         }).join('')}
       </div>
+      <div style="padding:0 20px 20px 20px">
+  <button class="btn btn-pri"
+    onclick="castVote('${poll.id}', S.selectedVotes['${poll.id}'])">
+    Votar
+  </button>
+</div>
     </div>`;
   }).join('');
 }
