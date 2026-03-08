@@ -377,7 +377,7 @@ select option{background:#14141e}
 <label>Senha</label>
 <input type="password" id="login-pw" placeholder="Digite a senha"
   onkeydown="if(event.key==='Enter')doLogin()">
-    <p id="login-err" style="color:var(--red);font-size:.8rem;margin-top:8px;display:none">Senha incorreta.</p>
+   <p id="login-err" style="color:var(--red);font-size:.8rem;margin-top:8px;display:none">Email ou senha incorretos.</p>
     <div class="mactions">
       <button class="btn btn-sec" onclick="closeOv('ov-login')">Cancelar</button>
       <button class="btn btn-pri" onclick="doLogin()">Entrar</button>
@@ -500,7 +500,7 @@ function lsSave() {
 
 // ─── FIREBASE ────────────────────────────────────────────
 let fbReady = false;
-     
+let isAdminLogged = false; 
 document.addEventListener('firebaseReady', () => {
   fbReady = true;
   const db = window._db;
@@ -601,7 +601,7 @@ document.addEventListener('firebaseReady', () => {
 
 });
      
-    async function fbSet(path,val){
+ async function fbSet(path,val){
   if(!fbReady){lsSave();return;}
   await window._set(window._ref(window._db,path),val);
 }
@@ -620,7 +620,15 @@ async function fbRemove(path){
 async function fbUpdate(path,val){
   if(!fbReady){lsSave();return;}
   await window._update(window._ref(window._db,path),val);
-} 
+}
+
+window._onAuthStateChanged(window._auth, (user) => {
+  isAdminLogged = !!user;
+
+  if(!user){
+    closeOv('ov-admin');
+  }
+});
 
 // ─── NAV ─────────────────────────────────────────────────
 function showPage(id, btn) {
@@ -663,9 +671,17 @@ async function doLogin(){
 }
      
 function openAdmin(){
-  renderAdmPlayers(); renderAdmMatches(); renderAdmPolls(); renderPlayerChecks();
-  document.getElementById('cfg-season').value=S.temporada;
-  aTab('jogadores',document.querySelector('.atab'));
+  if(!isAdminLogged){
+    toast('Faça login para acessar o admin', '#666');
+    return;
+  }
+
+  renderAdmPlayers();
+  renderAdmMatches();
+  renderAdmPolls();
+  renderPlayerChecks();
+  document.getElementById('cfg-season').value = S.temporada;
+  aTab('jogadores', document.querySelector('.atab'));
   document.getElementById('ov-admin').classList.add('on');
 }
 
