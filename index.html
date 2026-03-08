@@ -411,21 +411,29 @@ select option{background:#14141e}
     overflow-x:hidden;
   }
 
-  nav{
-    gap:2px;
-    flex-wrap:nowrap;
-    min-width:0;
-  }
+  .logo{
+  flex:0 0 auto;
+}
 
-  .nav-btn{
-    padding:6px 8px;
-    font-size:.72rem;
-    letter-spacing:.4px;
-  }
+nav{
+  flex:1;
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:4px;
+  min-width:0;
+}
 
-  .btn-adm{
-    margin-left:2px;
-  }
+.nav-btn{
+  width:100%;
+  padding:8px 4px;
+  font-size:.72rem;
+  letter-spacing:.3px;
+  text-align:center;
+}
+
+.btn-adm{
+  margin-left:0;
+}
 }
 
 ::-webkit-scrollbar{width:5px}
