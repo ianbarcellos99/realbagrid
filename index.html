@@ -771,40 +771,31 @@ async function savePlayer(){
     if(fbReady){
       await fbSet(`jogadores/${id}`, { nome });
     } else {
-      const j = S.jogadores.find(x => x.id === id);
-      if(j) j.nome = nome;
+      const idx = S.jogadores.findIndex(j => j.id === id);
+      if(idx !== -1){
+        S.jogadores[idx].nome = nome;
+      }
       lsSave();
+      renderAdmPlayers();
+      renderPlayerChecks();
+      renderStandings();
     }
 
-    const idx = S.jogadores.findIndex(j => j.id === id);
-    if(idx !== -1){
-      S.jogadores[idx].nome = nome;
-    }
-
-    renderAdmPlayers();
-    renderPlayerChecks();
-    renderStandings();
     toast('Jogador atualizado!');
   } else {
-    let newId;
-
-    if(fbReady){
-      newId = await fbPush('jogadores', { nome });
-    } else {
-      newId = Date.now().toString();
+ 
       lsSave();
+      renderAdmPlayers();
+      renderPlayerChecks();
+      renderStandings();
     }
 
-    S.jogadores.push({ id: newId, nome });
-
-    renderAdmPlayers();
-    renderPlayerChecks();
-    renderStandings();
     toast('Jogador adicionado!');
   }
 
   clearPForm();
-}   
+}
+     
 async function deletePlayer(id){
   if(!confirm('Excluir jogador?')) return;
   await fbRemove(`jogadores/${id}`);
