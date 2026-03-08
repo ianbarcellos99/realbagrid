@@ -205,7 +205,12 @@ nav{display:flex;align-items:center;gap:4px}
   color:#fff;
   box-shadow:0 0 10px rgba(205,127,50,.25);
 }
-     
+ .pj-val,
+.v-val{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.02rem;
+  letter-spacing:.5px;
+}    
 .p-name{display:flex;align-items:center;gap:10px;text-align:left!important;
   font-weight:700;font-size:.92rem!important;color:var(--br)!important}
 .avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;
@@ -214,6 +219,21 @@ nav{display:flex;align-items:center;gap:4px}
   font-family:'Bebas Neue',sans-serif;font-size:.78rem;color:#fff}
 .pts-val{font-family:'Bebas Neue',sans-serif;font-size:1.25rem!important;color:var(--br)!important}
 .aprov-val{font-size:.8rem!important}
+
+  .gols-val{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  color:#f0f0ea;
+}
+
+.gols-val b{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.05rem;
+  letter-spacing:.5px;
+  color:#f0f0ea;
+}   
 .botm-chip{
   display:flex;
   align-items:center;
@@ -449,7 +469,19 @@ select option{background:#14141e}
   .aprov-val{
     font-size:.64rem !important;
   }
+     
+.pj-val,
+.v-val{
+  font-size:.88rem;
+}
+.gols-val{
+  gap:3px;
+}
 
+.gols-val b{
+  font-size:.9rem;
+}
+     
   .botm-chip{
     display:flex;
     align-items:center;
@@ -999,11 +1031,12 @@ function renderStandings(){
         <div class="avatar">${ini}</div>${nomeSeguro}
       </span>
       <span class="pts-val">${j.pts}</span>
-      <span>${j.pj}</span>
-      <span>${j.v}</span>
+      <span class="pj-val">${j.pj}</span>
+      <span class="v-val">${j.v}</span>
+      
       <span class="aprov-val">${aprov}%</span>
       <span class="botm-chip">⭐<b>${j.botm}</b></span>
-      <span>${j.gols}</span>
+      <span class="gols-val">⚽ <b>${j.gols}</b></span>
       <span>${j.caloteiro}</span>
     </div>`;
   }).join('');
