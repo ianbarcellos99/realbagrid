@@ -468,10 +468,7 @@ select option{background:#14141e}
     <div class="asec" id="asec-config">
       <label>Nome da Temporada</label>
       <input type="text" id="cfg-season" placeholder="Ex: Temporada 2026">
-      <label>Nova Senha Admin</label>
-      <input type="password" id="cfg-pw1" placeholder="Deixe em branco para manter">
-      <label>Confirmar Nova Senha</label>
-      <input type="password" id="cfg-pw2">
+    
       <p id="cfg-err" style="color:var(--red);font-size:.8rem;margin-top:8px;display:none"></p>
       <div class="mactions" style="border:none;padding-top:.8rem;margin-top:.3rem">
         <button class="btn btn-pri" onclick="saveConfig()">Salvar</button>
@@ -486,7 +483,6 @@ select option{background:#14141e}
 <script>
 // ─── STATE ───────────────────────────────────────────────
 let S = {
-  senha: 'bagrid123',
   temporada: 'Temporada 2026',
   jogadores: [],
   partidas:  [],
@@ -504,21 +500,18 @@ function lsSave() {
 
 // ─── FIREBASE ────────────────────────────────────────────
 let fbReady = false;
-let adminPassword = null; // Senha do admin para validação Firebase
-let isAdminAuthenticated = false;
      
 document.addEventListener('firebaseReady', () => {
   fbReady = true;
   const db = window._db;
 
-  window._onValue(window._ref(db, 'config'), snap => {
-    const c = snap.val();
-    if (c) {
-      if (c.senha) S.senha = c.senha;
-      if (c.temporada) S.temporada = c.temporada;
-    }
-    renderAll();
-  });
+ window._onValue(window._ref(db, 'config/temporada'), snap => {
+  const temporada = snap.val();
+  if (temporada) {
+    S.temporada = temporada;
+  }
+  renderAll();
+});
 
   window._onValue(window._ref(db, 'jogadores'), snap => {
     S.jogadores = [];
@@ -608,42 +601,27 @@ document.addEventListener('firebaseReady', () => {
 
 });
      
-async function fbSet(path,val){
+    async function fbSet(path,val){
   if(!fbReady){lsSave();return;}
-  // Adiciona _verify se for operação admin
-  if(adminPassword && path !== 'adminPassword'){
-    val = {...val, _verify: adminPassword};
-  }
   await window._set(window._ref(window._db,path),val);
 }
 
 async function fbPush(path,val){
   if(!fbReady){lsSave();return null;}
-  // Adiciona _verify se for operação admin
-  if(adminPassword){
-    val = {...val, _verify: adminPassword};
-  }
-  const r=await window._push(window._ref(window._db,path),val);
+  const r = await window._push(window._ref(window._db,path),val);
   return r.key;
 }
 
 async function fbRemove(path){
   if(!fbReady){lsSave();return;}
-  // Para remover, precisamos primeiro adicionar _verify ao nó
-  if(adminPassword){
-    await window._update(window._ref(window._db,path), {_verify: adminPassword});
-  }
   await window._remove(window._ref(window._db,path));
 }
 
 async function fbUpdate(path,val){
   if(!fbReady){lsSave();return;}
-  // Adiciona _verify se for operação admin  
-  if(adminPassword){
-    val = {...val, _verify: adminPassword};
-  }
   await window._update(window._ref(window._db,path),val);
-}
+} 
+
 // ─── NAV ─────────────────────────────────────────────────
 function showPage(id, btn) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
@@ -691,13 +669,16 @@ function openAdmin(){
   document.getElementById('ov-admin').classList.add('on');
 }
 
-function logoutAdmin(){
-  adminPassword = null;
-  isAdminAuthenticated = false;
-  sessionStorage.removeItem('rb_admin_pw');
+async function logoutAdmin(){
+  try {
+    await window._signOut(window._auth);
+  } catch(e){
+    console.error('Erro ao sair:', e);
+  }
   closeOv('ov-admin');
   toast('Logout realizado!', '#666');
 }
+     
 function closeOv(id){document.getElementById(id).classList.remove('on');}
 function aTab(id,btn){
   document.querySelectorAll('.asec').forEach(s=>s.classList.remove('on'));
@@ -1217,17 +1198,19 @@ async function togglePoll(id){
 
 // ─── SAVE CONFIG ─────────────────────────────────────────
 async function saveConfig(){
-  const temporada=document.getElementById('cfg-season').value.trim();
-  const pw1=document.getElementById('cfg-pw1').value;
-  const pw2=document.getElementById('cfg-pw2').value;
-  const err=document.getElementById('cfg-err');
-  if(pw1){ if(pw1!==pw2){err.textContent='As senhas não coincidem.';err.style.display='block';return;} S.senha=pw1; }
-  err.style.display='none';
-  if(temporada) S.temporada=temporada;
-  await fbSet('config',{senha:S.senha,temporada:S.temporada});
+  const temporada = document.getElementById('cfg-season').value.trim();
+  const err = document.getElementById('cfg-err');
+
+  err.style.display = 'none';
+
+  if(temporada){
+    S.temporada = temporada;
+  }
+
+  await fbSet('config/temporada', S.temporada);
   if(!fbReady) lsSave();
-  document.getElementById('cfg-pw1').value=''; document.getElementById('cfg-pw2').value='';
-  document.getElementById('hero-season').textContent=S.temporada;
+
+  document.getElementById('hero-season').textContent = S.temporada;
   toast('Configurações salvas!');
 }
 
@@ -1348,12 +1331,6 @@ function renderAll(){
 // ─── INIT ────────────────────────────────────────────────
 lsLoad();
 
-// Restaura sessão de admin se existir
-const savedPw = sessionStorage.getItem('rb_admin_pw');
-if(savedPw){
-  adminPassword = savedPw;
-  isAdminAuthenticated = true;
-}
 
 setTimeout(()=>{ if(!fbReady){ document.getElementById('fb-warn').classList.add('show'); renderAll(); } }, 2500);
 renderAll();
