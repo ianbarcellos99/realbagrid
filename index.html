@@ -19,6 +19,13 @@
   import { getDatabase, ref, set, get, push, onValue, remove, update }
     from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
+  import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
   const firebaseConfig = {
     apiKey:            "AIzaSyDhAR1leLGRK6Nxp5EQUIxGK2JyRbfsrz0",
     authDomain:        "realbagrid-1134e.firebaseapp.com",
@@ -32,6 +39,8 @@
 
   const app = initializeApp(firebaseConfig);
   const db  = getDatabase(app);
+  const auth = getAuth(app);
+     
   window._db      = db;
   window._ref     = ref;
   window._set     = set;
@@ -40,6 +49,10 @@
   window._onValue = onValue;
   window._remove  = remove;
   window._update  = update;
+  window._auth = auth;
+  window._signInWithEmailAndPassword = signInWithEmailAndPassword;
+  window._onAuthStateChanged = onAuthStateChanged;
+  window._signOut = signOut;
   document.dispatchEvent(new Event('firebaseReady'));
 </script>
 
@@ -357,9 +370,13 @@ select option{background:#14141e}
   <div class="modal">
     <button class="x-btn" onclick="closeOv('ov-login')">✕</button>
     <div class="modal-title">Acesso Admin</div>
-    <label>Senha</label>
-    <input type="password" id="login-pw" placeholder="Digite a senha"
-      onkeydown="if(event.key==='Enter')doLogin()">
+    <label>Email</label>
+<input type="text" id="login-email" placeholder="Digite seu email"
+  onkeydown="if(event.key==='Enter')doLogin()">
+
+<label>Senha</label>
+<input type="password" id="login-pw" placeholder="Digite a senha"
+  onkeydown="if(event.key==='Enter')doLogin()">
     <p id="login-err" style="color:var(--red);font-size:.8rem;margin-top:8px;display:none">Senha incorreta.</p>
     <div class="mactions">
       <button class="btn btn-sec" onclick="closeOv('ov-login')">Cancelar</button>
@@ -638,51 +655,35 @@ function showPage(id, btn) {
 
 // ─── MODALS ──────────────────────────────────────────────
 function openLogin(){
-  document.getElementById('login-pw').value='';
-  document.getElementById('login-err').style.display='none';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pw').value = '';
+  document.getElementById('login-err').style.display = 'none';
   document.getElementById('ov-login').classList.add('on');
-  setTimeout(()=>document.getElementById('login-pw').focus(),120);
+  setTimeout(() => document.getElementById('login-email').focus(), 120);
 }
+     
 async function doLogin(){
+  const email = document.getElementById('login-email').value.trim();
   const senha = document.getElementById('login-pw').value;
   const err = document.getElementById('login-err');
-  
-  // Valida com a senha local primeiro (fallback se Firebase não estiver pronto)
-  if(senha === S.senha){
-    // Se Firebase está pronto, valida também com adminPassword
-    if(fbReady){
-      try {
-        const snap = await window._get(window._ref(window._db, 'adminPassword'));
-        const firebasePw = snap.val();
-        
-        if(firebasePw && senha === firebasePw){
-          // Senha correta! Salva na sessão
-          adminPassword = senha;
-          sessionStorage.setItem('rb_admin_pw', senha);
-          isAdminAuthenticated = true;
-          closeOv('ov-login'); 
-          openAdmin();
-        } else {
-          err.textContent = 'Senha incorreta.';
-          err.style.display = 'block';
-        }
-      } catch(e){
-        console.error('Erro ao validar senha:', e);
-        err.textContent = 'Erro ao validar. Tente novamente.';
-        err.style.display = 'block';
-      }
-    } else {
-      // Firebase não está pronto, aceita senha local
-      adminPassword = senha;
-      sessionStorage.setItem('rb_admin_pw', senha);
-      isAdminAuthenticated = true;
-      closeOv('ov-login'); 
-      openAdmin();
-    }
-  } else {
-    err.textContent = 'Senha incorreta.';
+
+  if(!email || !senha){
+    err.textContent = 'Preencha email e senha.';
+    err.style.display = 'block';
+    return;
+  }
+
+  try {
+    await window._signInWithEmailAndPassword(window._auth, email, senha);
+    err.style.display = 'none';
+    closeOv('ov-login');
+    openAdmin();
+  } catch(e){
+    err.textContent = 'Email ou senha incorretos.';
     err.style.display = 'block';
   }
+}
+     
 }
 function openAdmin(){
   renderAdmPlayers(); renderAdmMatches(); renderAdmPolls(); renderPlayerChecks();
