@@ -490,44 +490,49 @@ document.addEventListener('firebaseReady', () => {
   fbReady = true;
   const db = window._db;
 
-  window._onValue(window._ref(db,'config'), snap => {
+  window._onValue(window._ref(db, 'config'), snap => {
     const c = snap.val();
-    if (c) { if(c.senha) S.senha=c.senha; if(c.temporada) S.temporada=c.temporada; }
+    if (c) {
+      if (c.senha) S.senha = c.senha;
+      if (c.temporada) S.temporada = c.temporada;
+    }
     renderAll();
   });
- window._onValue(window._ref(db,'jogadores'), snap => {
-  S.jogadores = [];
 
-  snap.forEach(c => {
-    const val = c.val();
+  window._onValue(window._ref(db, 'jogadores'), snap => {
+    S.jogadores = [];
 
-    if (
-      val &&
-      typeof val === 'object' &&
-      typeof val.nome === 'string' &&
-      val.nome.trim() !== ''
-    ) {
-      S.jogadores.push({
-        id: c.key,
-        nome: val.nome.trim()
-      });
-    } else {
-      console.warn('Jogador ignorado por formato inválido:', c.key, val);
-    }
+    snap.forEach(c => {
+      const val = c.val();
+
+      if (
+        val &&
+        typeof val === 'object' &&
+        typeof val.nome === 'string' &&
+        val.nome.trim() !== ''
+      ) {
+        S.jogadores.push({
+          id: c.key,
+          nome: val.nome.trim()
+        });
+      } else {
+        console.warn('Jogador ignorado por formato inválido:', c.key, val);
+      }
+    });
+
+    renderAll();
   });
 
-  renderAll();
-});
-  });
-  window._onValue(window._ref(db,'partidas'), snap => {
-    S.partidas=[];
-    snap.forEach(c => S.partidas.push({id:c.key,...c.val()}));
+  window._onValue(window._ref(db, 'partidas'), snap => {
+    S.partidas = [];
+    snap.forEach(c => S.partidas.push({ id: c.key, ...c.val() }));
     S.partidas.reverse();
     renderAll();
   });
-  window._onValue(window._ref(db,'polls'), snap => {
-    S.polls=[];
-    snap.forEach(c => S.polls.push({id:c.key,...c.val()}));
+
+  window._onValue(window._ref(db, 'polls'), snap => {
+    S.polls = [];
+    snap.forEach(c => S.polls.push({ id: c.key, ...c.val() }));
     S.polls.reverse();
     renderAll();
   });
@@ -623,7 +628,7 @@ function calcStandings(){
 
 // ─── RENDER STANDINGS ────────────────────────────────────
 function renderStandings(){
-  const box=document.getElementById('standings');
+  const box=document.getElementById('standings-body');
   const acc={};
   S.jogadores.forEach(j=>{
     acc[j.id]={...j,pj:0,v:0,pts:0,botm:0,gols:0,caloteiro:0};
