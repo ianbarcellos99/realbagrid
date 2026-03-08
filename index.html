@@ -641,6 +641,11 @@ function showPage(id, btn) {
 
 // ─── MODALS ──────────────────────────────────────────────
 function openLogin(){
+  if(isAdminLogged){
+    openAdmin();
+    return;
+  }
+
   document.getElementById('login-email').value = '';
   document.getElementById('login-pw').value = '';
   document.getElementById('login-err').style.display = 'none';
