@@ -767,11 +767,20 @@ function renderPolls(){
     const total=Object.values(poll.votes||{}).reduce((a,b)=>a+b,0);
     const sorted=(poll.players||[]).slice().sort((a,b)=>((poll.votes||{})[b.id]||0)-((poll.votes||{})[a.id]||0));
     return `<div class="panel" style="margin-bottom:14px">
-      <div class="round-head">
-        <h3>🗳️ ${poll.rodada} — Vote no Bagre of the Match!</h3>
-        <span class="round-date">${total} voto${total!==1?'s':''}</span>
-      </div>
-      <div class="vote-grid">
+  <div class="round-head">
+    <h3>🗳️ ${poll.rodada} — Vote no Bagre of the Match!</h3>
+    <span class="round-date">${total} voto${total!==1?'s':''}</span>
+  </div>
+
+  <div style="padding:16px 20px 0 20px">
+    <label for="voter-${poll.id}">Quem está votando?</label>
+    <select id="voter-${poll.id}">
+      <option value="">Selecione um jogador</option>
+      ${S.jogadores.map(j => `<option value="${j.id}">${j.nome}</option>`).join('')}
+    </select>
+  </div>
+
+  <div class="vote-grid">
         ${sorted.map(pl=>{
           const cnt=(poll.votes||{})[pl.id]||0;
           const pct=total?Math.round(cnt/total*100):0;
@@ -791,13 +800,44 @@ function renderPolls(){
 
 // ─── CAST VOTE ───────────────────────────────────────────
 async function castVote(pollId, playerId){
-  const poll=S.polls.find(p=>p.id===pollId); if(!poll) return;
-  if(!poll.votes) poll.votes={};
-  poll.votes[playerId]=(poll.votes[playerId]||0)+1;
-  if(fbReady){ await fbSet(`polls/${pollId}/votes/${playerId}`, poll.votes[playerId]); }
-  else { lsSave(); }
-  toast('✅ Voto registrado!','#13803a');
-  renderPolls(); renderStandings();
+  const poll = S.polls.find(p => p.id === pollId);
+  if(!poll) return;
+
+  const voterSelect = document.getElementById(`voter-${pollId}`);
+  if(!voterSelect || !voterSelect.value){
+    toast('Selecione quem está votando');
+    return;
+  }
+
+  const voterId = voterSelect.value;
+  const voterName = nameById(voterId) || 'Jogador';
+  const playerName = nameById(playerId) || 'Jogador';
+
+  if(!poll.votes) poll.votes = {};
+
+  if(poll.votes[voterId]){
+    toast('Esse jogador já votou nessa enquete');
+    return;
+  }
+
+  const voteData = {
+    voterId,
+    voterName,
+    playerId,
+    playerName
+  };
+
+  poll.votes[voterId] = voteData;
+
+  if(fbReady){
+    await fbSet(`polls/${pollId}/votes/${voterId}`, voteData);
+  } else {
+    lsSave();
+  }
+
+  toast('✅ Voto registrado!', '#13803a');
+  renderPolls();
+  renderStandings();
 }
 
 // ─── SAVE PLAYER ─────────────────────────────────────────
