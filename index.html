@@ -37,23 +37,25 @@
   };
 
 
-  const app = initializeApp(firebaseConfig);
-  const db  = getDatabase(app);
-  const auth = getAuth(app);
-     
-  window._db      = db;
-  window._ref     = ref;
-  window._set     = set;
-  window._get     = get;
-  window._push    = push;
-  window._onValue = onValue;
-  window._remove  = remove;
-  window._update  = update;
-  window._auth = auth;
-  window._signInWithEmailAndPassword = signInWithEmailAndPassword;
-  window._onAuthStateChanged = onAuthStateChanged;
-  window._signOut = signOut;
-  document.dispatchEvent(new Event('firebaseReady'));
+ const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+const auth = getAuth(app);
+
+window._db      = db;
+window._ref     = ref;
+window._set     = set;
+window._get     = get;
+window._push    = push;
+window._onValue = onValue;
+window._remove  = remove;
+window._update  = update;
+
+window._auth = auth;
+window._signInWithEmailAndPassword = signInWithEmailAndPassword;
+window._onAuthStateChanged = onAuthStateChanged;
+window._signOut = signOut;
+
+document.dispatchEvent(new Event('firebaseReady'));
 </script>
 
 <style>
@@ -694,6 +696,7 @@ function openAdmin(){
 async function logoutAdmin(){
   try {
     await window._signOut(window._auth);
+    isAdminLogged = false;
   } catch(e){
     console.error('Erro ao sair:', e);
   }
