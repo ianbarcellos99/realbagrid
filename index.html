@@ -335,18 +335,17 @@ header{
 }
  .sc,
 .sr{
-  grid-template-columns: 22px minmax(110px,1fr) 32px 26px 26px 38px 42px 24px 30px;
+  grid-template-columns: 20px minmax(80px,1fr) 30px 24px 24px 34px 34px 22px 26px;
   padding-left:8px;
   padding-right:8px;
 }
 
 .sc span{
-  font-size:.5rem;
-  letter-spacing:.5px;
+  font-size:.48rem;
 }
 
 .sr span{
-  font-size:.68rem;
+  font-size:.66rem;
 }
 
 .pos{
@@ -389,6 +388,16 @@ header{
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--ink3);border-radius:3px}
+
+/* evita qualquer scroll lateral no mobile */
+.wrap{
+  overflow-x:hidden;
+}
+
+.panel{
+  overflow-x:hidden;
+}
+
 </style>
 </head>
 <body>
