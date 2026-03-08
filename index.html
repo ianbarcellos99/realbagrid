@@ -710,36 +710,51 @@ async function castVote(pollId, playerId){
 
 // ─── SAVE PLAYER ─────────────────────────────────────────
 async function savePlayer(){
-  const nome=document.getElementById('p-nome').value.trim();
-  if(!nome){toast('Digite o nome');return;}
-  const id=document.getElementById('p-id').value;
-  
+  const nome = document.getElementById('p-nome').value.trim();
+  if(!nome){
+    toast('Digite o nome');
+    return;
+  }
+
+  const id = document.getElementById('p-id').value;
+
   if(id){
-    // EDITANDO jogador existente
-    await fbSet(`jogadores/${id}`,{nome});
-    if(!fbReady){
-      const j=S.jogadores.find(x=>x.id===id);
-      if(j) j.nome=nome;
-      lsSave();
-      renderAdmPlayers();renderPlayerChecks();renderStandings();
+    // Editando jogador existente
+    if(fbReady){
+      await fbSet(`jogadores/${id}`, { nome });
     }
+
+    const idx = S.jogadores.findIndex(j => j.id === id);
+    if(idx !== -1){
+      S.jogadores[idx].nome = nome;
+    }
+
+    if(!fbReady){
+      lsSave();
+    }
+
+    renderAll();
     toast('Jogador atualizado!');
   } else {
-    // ADICIONANDO novo jogador
+    // Novo jogador
+    let newId;
+
     if(fbReady){
-      // Com Firebase: APENAS envia, NÃO atualiza local
-      // O listener onValue vai atualizar automaticamente
-      await fbPush('jogadores',{nome});
-      toast('Jogador adicionado!');
-      // NÃO chama render aqui! O onValue faz isso
+      newId = await fbPush('jogadores', { nome });
     } else {
-      // Sem Firebase: atualiza local
-      S.jogadores.push({id:Date.now().toString(),nome});
-      lsSave();
-      toast('Jogador adicionado!');
-      renderAdmPlayers();renderPlayerChecks();renderStandings();
+      newId = Date.now().toString();
     }
+
+    S.jogadores.push({ id: newId, nome });
+
+    if(!fbReady){
+      lsSave();
+    }
+
+    renderAll();
+    toast('Jogador adicionado!');
   }
+
   clearPForm();
 }
 async function deletePlayer(id){
