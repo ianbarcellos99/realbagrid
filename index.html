@@ -668,7 +668,7 @@ async function doLogin(){
 
   try {
     await window._signInWithEmailAndPassword(window._auth, email, senha);
-       isAdminLogged = true;
+       
     err.style.display = 'none';
     closeOv('ov-login');
     openAdmin();
