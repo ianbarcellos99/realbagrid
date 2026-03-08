@@ -203,12 +203,35 @@ nav{display:flex;align-items:center;gap:4px}
   background:#cd7f32;
   color:#fff;
 }
- .pj-val,
+     
+.pj-val,
 .v-val{
   font-family:'Bebas Neue',sans-serif;
-  font-size:1.02rem;
+  font-size:1.05rem;
+  color:#f0f0ea;
   letter-spacing:.5px;
-}    
+}
+
+.aprov-val{
+  color:#ffffff;
+  font-weight:600;
+}
+
+.calot-val{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  color:#f0f0ea;
+}
+
+.calot-val b{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.05rem;
+  letter-spacing:.5px;
+  color:#f0f0ea;
+}
+
 .p-name{display:flex;align-items:center;gap:10px;text-align:left!important;
   font-weight:700;font-size:.92rem!important;color:var(--br)!important}
 .avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;
@@ -218,7 +241,7 @@ nav{display:flex;align-items:center;gap:4px}
 .pts-val{font-family:'Bebas Neue',sans-serif;font-size:1.25rem!important;color:var(--br)!important}
 .aprov-val{font-size:.8rem!important}
 
-  .gols-val{
+.gols-val{
   display:flex;
   align-items:center;
   justify-content:center;
@@ -231,7 +254,8 @@ nav{display:flex;align-items:center;gap:4px}
   font-size:1.05rem;
   letter-spacing:.5px;
   color:#f0f0ea;
-}   
+}
+
 .botm-chip{
   display:flex;
   align-items:center;
@@ -244,16 +268,6 @@ nav{display:flex;align-items:center;gap:4px}
 .botm-chip b{
   font-family:'Bebas Neue',sans-serif;
   font-size:1.05rem;
-  color:#f5c518 !important;
-}
-.star{
-  font-size:.9rem;
-}
-
-.botm-num{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:1.05rem;
-  letter-spacing:1px;
   color:#f5c518 !important;
 }
 /* PARTIDAS */
@@ -383,7 +397,7 @@ select option{background:#14141e}
 .fb-warn.show{display:block}
 
 @media(max-width:680px){
- 
+
   .logo-words{
     display:none;
   }
@@ -392,14 +406,14 @@ select option{background:#14141e}
     height:54px;
   }
 
- header{
-  height:64px;
-  padding:0 8px;
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-     
+  header{
+    height:64px;
+    padding:0 8px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
   body{
     overflow-x:hidden;
   }
@@ -416,10 +430,10 @@ select option{background:#14141e}
   .modal{
     padding:1.4rem;
   }
-     
+
   .sc,
   .sr{
-    grid-template-columns: 26px minmax(78px,1fr) 30px 24px 24px 34px 34px 28px 26px;
+    grid-template-columns: 26px minmax(78px,1fr) 30px 24px 24px 34px 34px 28px 32px;
     padding-left:8px;
     padding-right:8px;
   }
@@ -432,18 +446,18 @@ select option{background:#14141e}
     font-size:.66rem;
   }
 
-.pos{
-  width:26px;
-  height:26px;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  margin:0 auto;
-  font-family:'Bebas Neue',sans-serif;
-  font-size:1.5rem;
-  line-height:1;
-}
+  .pos{
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0 auto;
+    font-family:'Bebas Neue',sans-serif;
+    font-size:1rem;
+    line-height:1;
+  }
 
   .p-name{
     gap:5px;
@@ -455,31 +469,32 @@ select option{background:#14141e}
   }
 
   .avatar{
-  width:18px;
-  height:18px;
-  font-size:.5rem;
-}
+    width:18px;
+    height:18px;
+    font-size:.5rem;
+  }
 
   .pts-val{
     font-size:.88rem !important;
   }
 
-  .aprov-val{
-    font-size:.64rem !important;
+  .pj-val,
+  .v-val{
+    font-size:.9rem;
   }
-     
-.pj-val,
-.v-val{
-  font-size:.88rem;
-}
-.gols-val{
-  gap:3px;
-}
 
-.gols-val b{
-  font-size:.9rem;
-}
-     
+  .aprov-val{
+    font-size:.7rem !important;
+  }
+
+  .gols-val{
+    gap:2px;
+  }
+
+  .gols-val b{
+    font-size:.9rem;
+  }
+
   .botm-chip{
     display:flex;
     align-items:center;
@@ -490,10 +505,18 @@ select option{background:#14141e}
   }
 
   .botm-chip b{
-  color:#f5c518 !important;
-  font-family:'Bebas Neue',sans-serif;
-  font-size:1.05rem;
-}
+    color:#f5c518 !important;
+    font-family:'Bebas Neue',sans-serif;
+    font-size:.95rem;
+  }
+
+  .calot-val{
+    gap:2px;
+  }
+
+  .calot-val b{
+    font-size:.9rem;
+  }
 
   .wrap{
     overflow-x:hidden;
@@ -504,24 +527,24 @@ select option{background:#14141e}
   }
 
   .logo{
-  flex:0 0 auto;
-}
+    flex:0 0 auto;
+  }
 
-nav{
-  flex:1;
-  display:grid;
-  grid-template-columns:repeat(4, 1fr);
-  gap:4px;
-  min-width:0;
-}
+  nav{
+    flex:1;
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:4px;
+    min-width:0;
+  }
 
-.nav-btn{
-  width:100%;
-  padding:8px 4px;
-  font-size:.72rem;
-  letter-spacing:.3px;
-  text-align:center;
-}
+  .nav-btn{
+    width:100%;
+    padding:8px 4px;
+    font-size:.72rem;
+    letter-spacing:.3px;
+    text-align:center;
+  }
 
 .btn-adm{
   margin-left:0;
@@ -534,7 +557,6 @@ nav{
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo" onclick="showPage('tabela')">
     <img class="escudo" src="logo.png" alt="Real Bagrid FC">
@@ -1023,19 +1045,19 @@ function renderStandings(){
 
     const rowClass = i===0 ? 'row-top1' : i===1 ? 'row-top2' : i===2 ? 'row-top3' : '';
     return `<div class="sr ${rowClass}" style="animation-delay:${i*.04}s">
-
-      <span class="pos ${posClass}">${i+1}</span>
-      <span class="p-name">
-        <div class="avatar">${ini}</div>${nomeSeguro}
-      </span>
-      <span class="pts-val">${j.pts}</span>
-      <span class="pj-val">${j.pj}</span>
-      <span class="v-val">${j.v}</span>
+    
+<span class="pos ${posClass}">${i+1}</span>
+<span class="p-name">
+  <div class="avatar">${ini}</div>${nomeSeguro}
+</span>
+<span class="pts-val">${j.pts}</span>
+<span class="pj-val">${j.pj}</span>
+<span class="v-val">${j.v}</span>
+<span class="aprov-val">${aprov}%</span>
+<span class="botm-chip">⭐<b>${j.botm}</b></span>
+<span class="gols-val">⚽ <b>${j.gols}</b></span>
+<span class="calot-val">💸 <b>${j.caloteiro}</b></span>
       
-      <span class="aprov-val">${aprov}%</span>
-      <span class="botm-chip">⭐<b>${j.botm}</b></span>
-      <span class="gols-val">⚽ <b>${j.gols}</b></span>
-      <span>${j.caloteiro}</span>
     </div>`;
   }).join('');
 }
