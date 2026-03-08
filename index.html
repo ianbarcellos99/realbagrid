@@ -1146,15 +1146,32 @@ function renderAdmMatches(){
       </div>
     </div>`).join('');
 }
-function renderAdmPolls(){
-  const el=document.getElementById('adm-polls-list');
-  if(!S.polls.length){el.innerHTML='<p style="color:var(--pt);font-size:.8rem;font-family:Barlow Condensed,sans-serif;padding:6px 0">Nenhuma votação</p>';return;}
-  el.innerHTML=S.polls.map(poll=>{
-    const total=Object.values(poll.votes||{}).reduce((a,b)=>a+b,0);
-    const sl=poll.status==='open'?'🟢 Aberta':'🔴 Encerrada';
+
+  function renderAdmPolls(){
+  const el = document.getElementById('adm-polls-list');
+
+  if(!S.polls.length){
+    el.innerHTML = '<p style="color:var(--pt);font-size:.8rem;font-family:Barlow Condensed,sans-serif;padding:6px 0">Nenhuma votação</p>';
+    return;
+  }
+
+  el.innerHTML = S.polls.map(poll => {
+    const votesArr = Object.values(poll.votes || {});
+    const total = votesArr.length;
+    const sl = poll.status === 'open' ? '🟢 Aberta' : '🔴 Encerrada';
+
+    const votosHtml = votesArr.length
+      ? `<div style="margin-top:8px;font-size:.78rem;color:var(--pt);line-height:1.5">
+          ${votesArr.map(vote => `
+            <div>• <strong>${vote.voterName || 'Jogador'}</strong> votou em <strong>${vote.playerName || 'Jogador'}</strong></div>
+          `).join('')}
+        </div>`
+      : `<div style="margin-top:8px;font-size:.78rem;color:var(--pt)">Nenhum voto registrado ainda</div>`;
+
     return `<div class="icard">
       <div class="icard-info">
-        <div class="iname">${poll.rodada} <small style="color:var(--pt);font-size:.72rem">${sl} · ${total} votos</small></div>
+        <div class="iname">${poll.rodada} <small style="color:var(--pt);font-size:.72rem">${sl} · ${total} voto${total!==1?'s':''}</small></div>
+        ${votosHtml}
       </div>
       <div class="icard-actions">
         <button class="btn btn-sec btn-sm" onclick="togglePoll('${poll.id}')">${poll.status==='open'?'Encerrar':'Abrir'}</button>
@@ -1163,6 +1180,7 @@ function renderAdmPolls(){
     </div>`;
   }).join('');
 }
+     
 function renderPlayerChecks(){
   ['check-t1','check-t2','check-vote'].forEach(cid=>{
     const el=document.getElementById(cid); if(!el) return;
