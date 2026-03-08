@@ -495,10 +495,29 @@ document.addEventListener('firebaseReady', () => {
     if (c) { if(c.senha) S.senha=c.senha; if(c.temporada) S.temporada=c.temporada; }
     renderAll();
   });
-  window._onValue(window._ref(db,'jogadores'), snap => {
-    S.jogadores=[];
-    snap.forEach(c => S.jogadores.push({id:c.key,...c.val()}));
-    renderAll();
+ window._onValue(window._ref(db,'jogadores'), snap => {
+  S.jogadores = [];
+
+  snap.forEach(c => {
+    const val = c.val();
+
+    if (
+      val &&
+      typeof val === 'object' &&
+      typeof val.nome === 'string' &&
+      val.nome.trim() !== ''
+    ) {
+      S.jogadores.push({
+        id: c.key,
+        nome: val.nome.trim()
+      });
+    } else {
+      console.warn('Jogador ignorado por formato inválido:', c.key, val);
+    }
+  });
+
+  renderAll();
+});
   });
   window._onValue(window._ref(db,'partidas'), snap => {
     S.partidas=[];
