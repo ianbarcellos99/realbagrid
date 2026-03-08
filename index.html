@@ -612,12 +612,24 @@ function calcStandings(){
   });
 
   // BOTM: winner of each closed poll gets +1
-  S.polls.forEach(poll=>{
-    if(!poll.votes) return;
-    let max=0,winnerId=null;
-    Object.entries(poll.votes).forEach(([pid,cnt])=>{ if(cnt>max){max=cnt;winnerId=pid;} });
-    if(winnerId&&map[winnerId]) map[winnerId].botm++;
+S.polls.forEach(poll=>{
+  if(poll.status !== 'closed') return;
+  if(!poll.votes) return;
+
+  let max = 0;
+  let winnerId = null;
+
+  Object.entries(poll.votes).forEach(([pid,cnt])=>{
+    if(cnt > max){
+      max = cnt;
+      winnerId = pid;
+    }
   });
+
+  if(winnerId && map[winnerId]){
+    map[winnerId].botm++;
+  }
+});
 
   return Object.values(map).sort((a,b)=>{
     if(b.pts!==a.pts) return b.pts-a.pts;
@@ -629,39 +641,21 @@ function calcStandings(){
 // ─── RENDER STANDINGS ────────────────────────────────────
 function renderStandings(){
   const box = document.getElementById('standings-body');
-  const acc={};
-  S.jogadores.forEach(j=>{
-    acc[j.id]={...j,pj:0,v:0,pts:0,botm:0,gols:0,caloteiro:0};
-  });
+  const rows = calcStandings();
 
-  S.partidas.forEach(p=>{
-    p.players.forEach(pid=>{
-      if(!acc[pid]) return;
-      acc[pid].pj++;
-      if(pid===p.winner){
-        acc[pid].v++;
-        acc[pid].pts+=3;
-      }
-    });
-    if(p.botm && acc[p.botm]) acc[p.botm].botm++;
-    (p.gols||[]).forEach(g=>{
-      if(acc[g.player]) acc[g.player].gols+=Number(g.count||0);
-    });
-    (p.caloteiro||[]).forEach(cid=>{
-      if(acc[cid]) acc[cid].caloteiro++;
-    });
-  });
+  if(!rows.length){
+    box.innerHTML = '<div class="empty"><div class="ico">⚽</div><p>Nenhum jogador cadastrado</p></div>';
+    return;
+  }
 
-  const rows=Object.values(acc).sort((a,b)=>b.pts-a.pts);
-
-  box.innerHTML=rows.map((j,i)=>{
+  box.innerHTML = rows.map((j,i)=>{
     const nomeSeguro = (j.nome || '').trim();
     const ini = nomeSeguro ? nomeSeguro.substring(0,2).toUpperCase() : '--';
-    const aprov = j.pj ? Math.round((j.v/j.pj)*100) : 0;
-    const pc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    const aprov = j.pj ? Math.round((j.v / j.pj) * 100) : 0;
+    const posClass = i===0 ? 'pos-1' : i===1 ? 'pos-2' : i===2 ? 'pos-3' : '';
 
     return `<div class="sr" style="animation-delay:${i*.04}s">
-      <span class="${pc}">${i+1}</span>
+      <span class="pos ${posClass}">${i+1}</span>
       <span class="p-name">
         <div class="avatar">${ini}</div>${nomeSeguro}
       </span>
