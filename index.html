@@ -758,37 +758,53 @@ function renderMatches(){
 
 // ─── RENDER POLLS ────────────────────────────────────────
 function renderPolls(){
-  const el=document.getElementById('polls-list');
-  const open=S.polls.filter(p=>p.status==='open');
+  const el = document.getElementById('polls-list');
+  const open = S.polls.filter(p => p.status === 'open');
+
   if(!open.length){
-    el.innerHTML='<div class="panel"><div class="empty"><div class="ico">🗳️</div><p>Nenhuma votação aberta no momento</p></div></div>'; return;
+    el.innerHTML = '<div class="panel"><div class="empty"><div class="ico">🗳️</div><p>Nenhuma votação aberta no momento</p></div></div>';
+    return;
   }
-  el.innerHTML=open.map(poll=>{
-    const total=Object.values(poll.votes||{}).reduce((a,b)=>a+b,0);
-    const sorted=(poll.players||[]).slice().sort((a,b)=>((poll.votes||{})[b.id]||0)-((poll.votes||{})[a.id]||0));
+
+  el.innerHTML = open.map(poll => {
+    const votesArr = Object.values(poll.votes || {});
+    const total = votesArr.length;
+
+    const countByPlayer = {};
+    votesArr.forEach(v => {
+      if(v && v.playerId){
+        countByPlayer[v.playerId] = (countByPlayer[v.playerId] || 0) + 1;
+      }
+    });
+
+    const sorted = (poll.players || []).slice().sort((a, b) => {
+      return (countByPlayer[b.id] || 0) - (countByPlayer[a.id] || 0);
+    });
+
     return `<div class="panel" style="margin-bottom:14px">
-  <div class="round-head">
-    <h3>🗳️ ${poll.rodada} — Vote no Bagre of the Match!</h3>
-    <span class="round-date">${total} voto${total!==1?'s':''}</span>
-  </div>
+      <div class="round-head">
+        <h3>🗳️ ${poll.rodada} — Vote no Bagre of the Match!</h3>
+        <span class="round-date">${total} voto${total!==1?'s':''}</span>
+      </div>
 
-  <div style="padding:16px 20px 0 20px">
-    <label for="voter-${poll.id}">Quem está votando?</label>
-    <select id="voter-${poll.id}">
-      <option value="">Selecione um jogador</option>
-      ${S.jogadores.map(j => `<option value="${j.id}">${j.nome}</option>`).join('')}
-    </select>
-  </div>
+      <div style="padding:16px 20px 0 20px">
+        <label for="voter-${poll.id}">Quem está votando?</label>
+        <select id="voter-${poll.id}">
+          <option value="">Selecione um jogador</option>
+          ${S.jogadores.map(j => `<option value="${j.id}">${j.nome}</option>`).join('')}
+        </select>
+      </div>
 
-  <div class="vote-grid">
-        ${sorted.map(pl=>{
-          const cnt=(poll.votes||{})[pl.id]||0;
-          const pct=total?Math.round(cnt/total*100):0;
-         const nomeSeguro = (pl.nome || '').trim();
+      <div class="vote-grid">
+        ${sorted.map(pl => {
+          const cnt = countByPlayer[pl.id] || 0;
+          const pct = total ? Math.round((cnt / total) * 100) : 0;
+          const nomeSeguro = (pl.nome || '').trim();
           const ini = nomeSeguro ? nomeSeguro.substring(0,2).toUpperCase() : '--';
+
           return `<div class="vote-card" onclick="castVote('${poll.id}','${pl.id}')">
             <div class="v-avatar">${ini}</div>
-            <div class="v-name">${pl.nome}</div>
+            <div class="v-name">${nomeSeguro}</div>
             <div class="v-votes">${cnt}</div>
             <div class="v-bar-wrap"><div class="v-bar" style="width:${pct}%"></div></div>
           </div>`;
