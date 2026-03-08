@@ -584,6 +584,8 @@ document.addEventListener('firebaseReady', () => {
   S.polls.reverse();
   renderAll();
 });
+
+});
      
 async function fbSet(path,val){if(!fbReady){lsSave();return;}await window._set(window._ref(window._db,path),val);}
 async function fbPush(path,val){if(!fbReady){lsSave();return null;}const r=await window._push(window._ref(window._db,path),val);return r.key;}
