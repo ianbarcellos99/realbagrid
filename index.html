@@ -313,119 +313,57 @@ select option{background:#14141e}
     padding:1.4rem;
   }
 
-  /* Esconde o cabeçalho da tabela no mobile */
-  .sc{
-    display:none;
+  .sc,
+  .sr{
+    grid-template-columns: 24px minmax(90px,1fr) 34px 30px 30px 42px 44px 28px 34px;
+    padding-left:10px;
+    padding-right:10px;
   }
 
-  /* Cada jogador vira um card compacto */
-  .sr{
-    grid-template-columns:34px 1fr 1fr;
-    gap:8px 10px;
-    padding:14px 16px;
-    align-items:start;
+  .sc span{
+    font-size:.52rem;
+    letter-spacing:.8px;
   }
 
   .sr span{
-    text-align:left;
+    font-size:.72rem;
   }
 
-  .sr .pos{
-    grid-column:1;
-    grid-row:1 / span 5;
-    text-align:center;
-    padding-top:2px;
+  .pos{
+    font-size:.9rem;
   }
 
-  .sr .p-name{
-    grid-column:2 / 4;
-    grid-row:1;
+  .p-name{
+    gap:6px;
+    font-size:.76rem !important;
+    min-width:0;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
   }
 
-  .sr span:nth-child(3){
-    grid-column:2;
-    grid-row:2;
+  .avatar{
+    width:22px;
+    height:22px;
+    font-size:.58rem;
   }
 
-  .sr span:nth-child(4){
-    grid-column:3;
-    grid-row:2;
+  .pts-val{
+    font-size:.95rem !important;
   }
 
-  .sr span:nth-child(5){
-    grid-column:2;
-    grid-row:3;
+  .aprov-val{
+    font-size:.68rem !important;
   }
 
-  .sr span:nth-child(6){
-    grid-column:3;
-    grid-row:3;
+  .botm-chip{
+    padding:1px 4px;
+    font-size:.52rem;
   }
 
+  .sc span:nth-child(7),
   .sr span:nth-child(7){
-    grid-column:2;
-    grid-row:4;
-  }
-
-  .sr span:nth-child(8){
-    grid-column:3;
-    grid-row:4;
-  }
-
-  .sr span:nth-child(9){
-    grid-column:2;
-    grid-row:5;
-  }
-
-  .sr span:nth-child(3)::before{
-    content:'PTS ';
-    color:var(--azulv);
-    font-weight:700;
-  }
-
-  .sr span:nth-child(4)::before{
-    content:'PJ ';
-    color:var(--azulv);
-    font-weight:700;
-  }
-
-  .sr span:nth-child(5)::before{
-    content:'V ';
-    color:var(--azulv);
-    font-weight:700;
-  }
-
-  .sr span:nth-child(6)::before{
-    content:'APR ';
-    color:var(--azulv);
-    font-weight:700;
-  }
-
-  .sr span:nth-child(7)::before{
-    content:'BOTM ';
-    color:var(--azulv);
-    font-weight:700;
-  }
-
-  .sr span:nth-child(8)::before{
-    content:'GL ';
-    color:var(--azulv);
-    font-weight:700;
-  }
-
-  .sr span:nth-child(9)::before{
-    content:'CALOTE ';
-    color:var(--azulv);
-    font-weight:700;
-  }
-
-  .sr .pts-val{
-    font-size:1rem !important;
-  }
-
-  .sr .botm-chip{
-    padding:1px 6px;
-    font-size:.64rem;
+    font-size:.58rem;
   }
 }
      
