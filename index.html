@@ -306,19 +306,20 @@ select option{background:#14141e}
 
 @media(max-width:680px){
  
-.logo-words{
-  display:none;
-}
+  .logo-words{
+    display:none;
+  }
 
-.escudo{
-  height:54px;
-}
+  .escudo{
+    height:54px;
+  }
 
-header{
-  height:64px;
-}
+  header{
+    height:64px;
+    padding:0 8px;
+  }
      
-     body{
+  body{
     overflow-x:hidden;
   }
 
@@ -331,85 +332,90 @@ header{
     font-size:.85rem;
   }
 
-  header{
-    padding:0 1rem;
-  }
-
   .modal{
     padding:1.4rem;
   }
      
-.logo-words{
-  display:none;
-}
+  .sc,
+  .sr{
+    grid-template-columns: 20px minmax(80px,1fr) 30px 24px 24px 34px 34px 22px 26px;
+    padding-left:8px;
+    padding-right:8px;
+  }
 
-.escudo{
-  height:54px;
-}
- .sc,
-.sr{
-  grid-template-columns: 20px minmax(80px,1fr) 30px 24px 24px 34px 34px 22px 26px;
-  padding-left:8px;
-  padding-right:8px;
-}
+  .sc span{
+    font-size:.48rem;
+  }
 
-.sc span{
-  font-size:.48rem;
-}
+  .sr span{
+    font-size:.66rem;
+  }
 
-.sr span{
-  font-size:.66rem;
-}
+  .pos{
+    font-size:.82rem;
+  }
 
-.pos{
-  font-size:.82rem;
-}
+  .p-name{
+    gap:5px;
+    font-size:.72rem !important;
+    min-width:0;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+  }
 
-.p-name{
-  gap:5px;
-  font-size:.72rem !important;
-  min-width:0;
-  overflow:hidden;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-}
+  .avatar{
+    width:20px;
+    height:20px;
+    font-size:.54rem;
+  }
 
-.avatar{
-  width:20px;
-  height:20px;
-  font-size:.54rem;
-}
+  .pts-val{
+    font-size:.88rem !important;
+  }
 
-.pts-val{
-  font-size:.88rem !important;
-}
+  .aprov-val{
+    font-size:.64rem !important;
+  }
 
-.aprov-val{
-  font-size:.64rem !important;
-}
+  .botm-chip{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    color:#f5c518;
+    font-weight:700;
+  }
 
-.botm-chip{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-  color:#f5c518;
-  font-weight:700;
-}
+  .botm-chip b{
+    color:#f5c518;
+    font-family:'Bebas Neue',sans-serif;
+    font-size:1.05rem;
+  }
 
-.botm-chip b{
-  color:#f5c518;
-  font-family:'Bebas Neue',sans-serif;
-  font-size:1.05rem;
-}
-.wrap{
-  overflow-x:hidden;
-}
+  .wrap{
+    overflow-x:hidden;
+  }
 
-.panel{
-  overflow-x:hidden;
-}
+  .panel{
+    overflow-x:hidden;
+  }
 
+  nav{
+    gap:2px;
+    flex-wrap:nowrap;
+    min-width:0;
+  }
+
+  .nav-btn{
+    padding:6px 8px;
+    font-size:.72rem;
+    letter-spacing:.4px;
+  }
+
+  .btn-adm{
+    margin-left:2px;
+  }
 }
 
 ::-webkit-scrollbar{width:5px}
