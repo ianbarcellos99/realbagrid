@@ -975,11 +975,7 @@ async function savePoll(){
   document.querySelectorAll('#check-vote input').forEach(cb => cb.checked = false);
   toast('Votação criada!', '#13803a');
 }
-  // Com Firebase: o listener onValue vai renderizar automaticamente
-  document.getElementById('v-rodada').value='';
-  document.querySelectorAll('#check-vote input').forEach(cb=>cb.checked=false);
-  toast('Votação criada!','#13803a');
-}
+
 async function deletePoll(id){
   if(!confirm('Excluir votação?')) return;
   await fbRemove(`polls/${id}`);
