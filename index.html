@@ -475,6 +475,7 @@ let S = {
   partidas:  [],
   polls:     [],
 selectedVotes: {},
+selectedVoters: {},
 };
 
 function lsLoad() {
@@ -776,8 +777,10 @@ function renderPolls(){
   el.innerHTML = open.map(poll => {
     const votesArr = Object.values(poll.votes || {});
     const total = votesArr.length;
-       const selectedPlayerId = S.selectedVotes[poll.id] || '';
-
+       
+    const selectedPlayerId = S.selectedVotes[poll.id] || '';
+    const selectedVoterId = S.selectedVoters[poll.id] || '';
+       
     const countByPlayer = {};
     votesArr.forEach(v => {
       if(v && v.playerId){
@@ -797,9 +800,9 @@ function renderPolls(){
 
       <div style="padding:16px 20px 0 20px">
         <label for="voter-${poll.id}">Quem está votando?</label>
-        <select id="voter-${poll.id}">
+        <select id="voter-${poll.id}" onchange="selectVoter('${poll.id}', this.value)">
           <option value="">Selecione um jogador</option>
-          ${S.jogadores.map(j => `<option value="${j.id}">${j.nome}</option>`).join('')}
+          ${S.jogadores.map(j => `<option value="${j.id}" ${selectedVoterId===j.id?'selected':''}>${j.nome}</option>`).join('')}
         </select>
       </div>
 
@@ -829,9 +832,14 @@ function renderPolls(){
   }).join('');
 }
 // ─── SELECT VOTE ───────────────────────────────────────────
-     function selectVote(pollId, playerId){
+function selectVote(pollId, playerId){
   S.selectedVotes[pollId] = playerId;
   renderPolls();
+}
+
+// ─── SELECT VOTER ──────────────────────────────────────────
+function selectVoter(pollId, voterId){
+  S.selectedVoters[pollId] = voterId;
 }
 // ─── CAST VOTE ───────────────────────────────────────────
 async function castVote(pollId, playerId){
