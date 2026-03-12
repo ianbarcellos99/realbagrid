@@ -99,6 +99,43 @@ header{position:sticky;top:0;z-index:50;height:82px;display:flex;align-items:cen
 .logo-words small{font-family:'Barlow Condensed',sans-serif;font-size:.6rem;font-weight:700;
   letter-spacing:5px;color:var(--azul);text-transform:uppercase;margin-top:1px}
 nav{display:flex;align-items:center;gap:4px}
+
+/* BOTÃO HAMBURGUER */
+.menu-toggle{
+  display:none;
+}
+     .mobile-menu{
+  position:fixed;
+  top:70px;
+  right:12px;
+  width:180px;
+  background:rgba(16,16,26,.96);
+  border:1px solid var(--div);
+  border-radius:14px;
+  padding:10px;
+  display:none;
+  flex-direction:column;
+  gap:8px;
+  z-index:120;
+}
+
+.mobile-menu button{
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--div);
+  color:var(--br);
+  padding:10px;
+  border-radius:10px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:.85rem;
+  font-weight:700;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+
+.mobile-menu.open{
+  display:flex;
+}
+
 .nav-btn{background:none;border:none;cursor:pointer;font-family:'Barlow Condensed',sans-serif;
   font-size:.85rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
   color:var(--pt);padding:7px 15px;border-radius:6px;transition:color .2s,background .2s;position:relative}
@@ -472,6 +509,20 @@ select option{background:#14141e}
     text-overflow:ellipsis;
   }
 
+.menu-toggle{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:none;
+  border:1px solid var(--div);
+  color:var(--br);
+  width:40px;
+  height:40px;
+  border-radius:10px;
+  font-size:1.3rem;
+  cursor:pointer;
+}
+     
   .avatar{
     width:18px;
     height:18px;
@@ -587,6 +638,11 @@ select option{background:#14141e}
     min-width:0;
   }
 
+nav .nav-btn:nth-child(1),
+nav .nav-btn:nth-child(4){
+  display:none;
+}     
+     
   .nav-btn{
     width:100%;
     padding:8px 4px;
@@ -612,6 +668,8 @@ select option{background:#14141e}
     <div class="logo-words"><b>Real Bagrid</b><small>Futebol Clube</small></div>
   </div>
 
+  <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+     
   <nav>
     <button class="nav-btn on" onclick="showPage('tabela',this)">Tabela</button>
     <button class="nav-btn" onclick="showPage('partidas',this)">Partidas</button>
@@ -619,6 +677,11 @@ select option{background:#14141e}
     <button class="nav-btn btn-adm" onclick="openLogin()">Admin</button>
   </nav>
 </header>
+     <div class="mobile-menu" id="mobile-menu">
+  <button onclick="showPage('artilheiros'); toggleMenu();">Artilheiros</button>
+  <button onclick="showPage('botm'); toggleMenu();">BOTM</button>
+  <button onclick="openLogin(); toggleMenu();">Admin</button>
+</div>
 
 <div class="wrap">
 
@@ -662,6 +725,23 @@ select option{background:#14141e}
     </div>
   </div>
 
+  <!-- ARTILHEIRO -->
+<div id="page-artilheiros" class="page">
+  <div class="panel">
+    <h2>Ranking de Artilheiros</h2>
+    <div id="artilheiros-list"></div>
+  </div>
+</div>
+
+<!-- BOTM -->
+<div id="page-botm" class="page">
+  <div class="panel">
+    <h2>Ranking de BOTM</h2>
+    <div id="botm-list"></div>
+  </div>
+</div>     
+
+     
 </div>
 
 <!-- LOGIN -->
@@ -939,6 +1019,12 @@ function showPage(id, btn) {
   else { const map={tabela:0,partidas:1,votacao:2}; if(map[id]!==undefined) document.querySelectorAll('.nav-btn')[map[id]].classList.add('on'); }
 }
 
+
+// ─── TOOGLE MENU ──────────────────────────────────────────────     
+function toggleMenu(){
+  document.getElementById("mobile-menu").classList.toggle("open");
+}
+     
 // ─── MODALS ──────────────────────────────────────────────
 function openLogin(){
   if(isAdminLogged){
