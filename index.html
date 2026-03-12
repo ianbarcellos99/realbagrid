@@ -1162,6 +1162,76 @@ S.polls.forEach(poll => {
   );
 }
 
+// ─── CALC ARTILHEIROS ────────────────────────────────────
+function calcArtilheiros(){
+  const map = {};
+
+  S.jogadores.forEach(j => {
+    map[j.id] = {
+      id: j.id,
+      nome: j.nome,
+      gols: 0
+    };
+  });
+
+  S.partidas.forEach(p => {
+    if(p.goals && typeof p.goals === 'object'){
+      Object.entries(p.goals).forEach(([playerId, count]) => {
+        if(map[playerId]){
+          map[playerId].gols += parseInt(count) || 0;
+        }
+      });
+    }
+  });
+
+  return Object.values(map)
+    .filter(j => j.gols > 0)
+    .sort((a,b) => b.gols - a.gols || a.nome.localeCompare(b.nome));
+}
+
+function calcBotmRanking(){
+  const map = {};
+
+  S.jogadores.forEach(j => {
+    map[j.id] = {
+      id: j.id,
+      nome: j.nome,
+      botm: 0
+    };
+  });
+
+  S.polls.forEach(poll => {
+    if(poll.status !== 'closed') return;
+    if(!poll.votes) return;
+
+    const countByPlayer = {};
+
+    Object.values(poll.votes).forEach(vote => {
+      if(vote && vote.playerId){
+        countByPlayer[vote.playerId] = (countByPlayer[vote.playerId] || 0) + 1;
+      }
+    });
+
+    let max = 0;
+    let winnerId = null;
+
+    Object.entries(countByPlayer).forEach(([playerId, count]) => {
+      if(count > max){
+        max = count;
+        winnerId = playerId;
+      }
+    });
+
+    if(winnerId && map[winnerId]){
+      map[winnerId].botm++;
+    }
+  });
+
+  return Object.values(map)
+    .filter(j => j.botm > 0)
+    .sort((a,b) => b.botm - a.botm || a.nome.localeCompare(b.nome));
+}
+     
 // ─── RENDER STANDINGS ────────────────────────────────────
 function renderStandings(){
   const box = document.getElementById('standings-body');
@@ -1196,6 +1266,62 @@ function renderStandings(){
     </div>`;
   }).join('');
 }
+
+// ─── RENDER ARTILHEIROS ──────────────────────────────────────
+function renderArtilheiros(){
+  const el = document.getElementById('artilheiros-list');
+  if(!el) return;
+
+  const rows = calcArtilheiros();
+
+  if(!rows.length){
+    el.innerHTML = '<div class="empty"><div class="ico">⚽</div><p>Nenhum gol registrado</p></div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="sc" style="grid-template-columns:36px 1fr 70px">
+      <span>#</span><span>Jogador</span><span>Gols</span>
+    </div>
+    ${rows.map((j,i) => `
+      <div class="sr" style="grid-template-columns:36px 1fr 70px">
+        <span class="pos">${i+1}</span>
+        <span class="p-name">
+          <div class="avatar">${(j.nome || '').substring(0,2).toUpperCase()}</div>${j.nome}
+        </span>
+        <span class="gols-val">⚽ <b>${j.gols}</b></span>
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderBotmRanking(){
+  const el = document.getElementById('botm-list');
+  if(!el) return;
+
+  const rows = calcBotmRanking();
+
+  if(!rows.length){
+    el.innerHTML = '<div class="empty"><div class="ico">⭐</div><p>Nenhum BOTM registrado</p></div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="sc" style="grid-template-columns:36px 1fr 90px">
+      <span>#</span><span>Jogador</span><span>BOTM</span>
+    </div>
+    ${rows.map((j,i) => `
+      <div class="sr" style="grid-template-columns:36px 1fr 90px">
+        <span class="pos">${i+1}</span>
+        <span class="p-name">
+          <div class="avatar">${(j.nome || '').substring(0,2).toUpperCase()}</div>${j.nome}
+        </span>
+        <span class="botm-chip">⭐ <b>${j.botm}</b></span>
+      </div>
+    `).join('')}
+  `;
+}
+     
 // ─── RENDER MATCHES ──────────────────────────────────────
 function renderMatches(){
   const el=document.getElementById('matches-list');
@@ -1736,9 +1862,15 @@ function fmtDate(d){ if(!d) return ''; const [y,m,day]=d.split('-'); return `${d
 
 // ─── RENDER ALL ──────────────────────────────────────────
 function renderAll(){
-  renderStandings(); renderMatches(); renderPolls();
-  renderAdmPlayers(); renderAdmMatches(); renderAdmPolls(); renderPlayerChecks();
-}
+renderStandings();
+renderMatches();
+renderPolls();
+renderArtilheiros();
+renderBotmRanking();
+renderAdmPlayers();
+renderAdmMatches();
+renderAdmPolls();
+renderPlayerChecks();
 
 // ─── INIT ────────────────────────────────────────────────
 lsLoad();
