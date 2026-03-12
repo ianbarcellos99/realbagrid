@@ -532,6 +532,41 @@ select option{background:#14141e}
     font-size:.9rem;
   }
 
+   .vote-grid{
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
+}
+
+.vote-card{
+  padding:10px 8px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  text-align:left;
+}
+
+.vote-card .v-avatar{
+  width:32px;
+  height:32px;
+  font-size:.8rem;
+  margin:0;
+}
+
+.vote-card .v-name{
+  font-size:.82rem;
+  flex:1;
+  margin-left:8px;
+}
+
+.vote-card .v-votes{
+  font-size:1.1rem;
+  margin:0 6px;
+}
+
+.vote-card .v-bar-wrap{
+  display:none;
+}  
+     
   .wrap{
     overflow-x:hidden;
   }
