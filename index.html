@@ -923,7 +923,7 @@ document.addEventListener('firebaseReady', () => {
         console.warn('Jogador ignorado por formato inválido:', c.key, val);
       }
     });
-
+    sortJogadoresAZ();
     renderAll();
   });
 
@@ -1105,6 +1105,13 @@ function toast(msg,color='var(--azul2)'){
   t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600);
 }
 
+// ===== ORDERNAR JOGADORES =====
+function sortJogadoresAZ(){
+  S.jogadores.sort((a,b)=>
+    a.nome.localeCompare(b.nome,'pt-BR',{sensitivity:'base'})
+  );
+}
+     
 // ─── CALC STANDINGS ──────────────────────────────────────
 function calcStandings(){
   const map={};
@@ -1159,11 +1166,21 @@ S.polls.forEach(poll => {
   }
 });
 
-  return Object.values(map).sort((a,b)=>
-    b.pts-a.pts || b.v-a.v || b.gols-a.gols || a.nome.localeCompare(b.nome)
-  );
-}
+return Object.values(map).sort((a,b) => {
+  const aprovA = a.pj ? (a.pts / (3 * a.pj)) : 0;
+const aprovB = b.pj ? (b.pts / (3 * b.pj)) : 0;
 
+  return (
+    (b.pts - a.pts) ||          // 1 Pontos
+    (b.pj - a.pj) ||            // 2 Mais partidas
+    (aprovB - aprovA) ||        // 3 Aproveitamento
+    (b.botm - a.botm) ||        // 4 BOTM
+    (b.gols - a.gols) ||        // 5 Gols
+    (a.caloteiro - b.caloteiro) || // 6 Menos caloteiro
+    a.nome.localeCompare(b.nome)
+  );
+
+});
 // ─── CALC ARTILHEIROS ────────────────────────────────────
 function calcArtilheiros(){
   const map = {};
@@ -1247,7 +1264,7 @@ function renderStandings(){
   box.innerHTML = rows.map((j,i)=>{
     const nomeSeguro = (j.nome || '').trim();
     const ini = nomeSeguro ? nomeSeguro.substring(0,2).toUpperCase() : '--';
-    const aprov = j.pj ? Math.round((j.v / j.pj) * 100) : 0;
+   const aprov = j.pj ? ((j.pts / (3 * j.pj)) * 100).toFixed(2) : 0;
     const posClass = i===0 ? 'pos-1' : i===1 ? 'pos-2' : i===2 ? 'pos-3' : '';
 
     const rowClass = i===0 ? 'row-top1' : i===1 ? 'row-top2' : i===2 ? 'row-top3' : '';
