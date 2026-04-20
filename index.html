@@ -1027,7 +1027,7 @@ nav .nav-btn:nth-child(4){
           <div class="trn-preview-scroll"><div class="trn-preview-table" id="trn-preview-body"></div></div>
           <div style="padding:8px 14px;font-family:Barlow Condensed,sans-serif;font-size:.68rem;
             color:var(--pt);border-top:1px solid var(--div)">
-            🏆 1º → 3pts na tabela geral &nbsp;·&nbsp; 🥈 2º → 1pt &nbsp;·&nbsp; 🥉 3º → 0pts
+            🏆 1º → 3pts na tabela geral &nbsp;·&nbsp; 🥈 2º → 2pts &nbsp;·&nbsp; 🥉 3º → 1pt
           </div>
         </div>
 
@@ -1937,7 +1937,7 @@ function updateTrnPreview(){
   const standings = calcTournamentStandings(fakeTrn);
   const medals = ['tm-1','tm-2','tm-3'];
   const medalEmoji = ['🏆','🥈','🥉'];
-  const ptsTabela = [3, 1, 0];
+  const ptsTabela = [3, 2, 1];
 
   const body = document.getElementById('trn-preview-body');
   body.innerHTML = `
@@ -2124,7 +2124,7 @@ function calcStandings(){
     const standings = calcTournamentStandings(trn);
     const playerGroups = [trn.p1||[], trn.p2||[], trn.p3||[]];
     // standings[0]=1st, standings[1]=2nd, standings[2]=3rd
-    const ptsMap = [3, 1, 0];
+    const ptsMap = [3, 2, 1];
     standings.forEach((team, rank) => {
       const players = playerGroups[team.key - 1] || [];
       players.forEach(pid => {
