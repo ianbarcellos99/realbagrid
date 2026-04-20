@@ -1371,6 +1371,21 @@ function calcArtilheiros(){
     }
   });
 
+     // Incluir gols dos torneios
+S.torneios.forEach(trn => {
+  (trn.rounds||[]).forEach(round => {
+    Object.values(round).forEach(c => {
+      if(c.goals && typeof c.goals === 'object'){
+        Object.entries(c.goals).forEach(([playerId, count]) => {
+          if(map[playerId]){
+            map[playerId].gols += parseInt(count) || 0;
+          }
+        });
+      }
+    });
+  });
+});
+     
   return Object.values(map)
     .filter(j => j.gols > 0)
     .sort((a,b) => b.gols - a.gols || a.nome.localeCompare(b.nome));
