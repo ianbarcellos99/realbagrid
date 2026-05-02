@@ -671,8 +671,8 @@ select option{background:#14141e}
   /* Esconder todos os botões da nav no mobile exceto Partidas, Votação e Admin */
   nav .nav-btn{ display:none; }
 
-  nav .nav-btn[onclick*="partidas"],
-  nav .nav-btn[onclick*="votacao"]{
+nav .nav-btn[onclick*="draft"],
+nav .nav-btn[onclick*="votacao"]{
     display:flex;
     align-items:center;
     justify-content:center;
@@ -685,16 +685,15 @@ select option{background:#14141e}
     flex:1;
     max-width:96px;
   }
-
-  nav .nav-btn[onclick*="partidas"]:hover,
-  nav .nav-btn[onclick*="votacao"]:hover{
+nav .nav-btn[onclick*="draft"]:hover,
+nav .nav-btn[onclick*="votacao"]:hover{
     background:rgba(29,111,255,.15);
     border-color:rgba(29,111,255,.4);
     color:var(--br);
   }
 
-  nav .nav-btn[onclick*="partidas"].on,
-  nav .nav-btn[onclick*="votacao"].on{
+nav .nav-btn[onclick*="draft"].on,
+nav .nav-btn[onclick*="votacao"].on{
     background:rgba(29,111,255,.2);
     border-color:var(--azul);
     color:var(--azulv);
@@ -1075,7 +1074,6 @@ select option{background:#14141e}
      
   <nav>
     <button class="nav-btn on" onclick="showPage('tabela',this)">Tabela</button>
-    <button class="nav-btn" onclick="showPage('partidas',this)">Partidas</button>
     <button class="nav-btn" onclick="showPage('draft',this)">Draft</button>
     <button class="nav-btn" onclick="showPage('artilheiros',this)">Artilheiros</button>
     <button class="nav-btn" onclick="showPage('botm',this)">BOTM</button>
@@ -1084,10 +1082,10 @@ select option{background:#14141e}
   </nav>
 </header>
      <div class="mobile-menu" id="mobile-menu">
-  <button onclick="showPage('artilheiros'); toggleMenu();">Artilheiros</button>
-  <button onclick="showPage('botm'); toggleMenu();">BOTM</button>
-  <button onclick="showPage('tabela'); toggleMenu();">Tabela</button>
-  <button onclick="showPage('draft'); toggleMenu();">Draft</button>
+  <button onclick="showPage('partidas'); toggleMenu();">Partidas</button>
+<button onclick="showPage('artilheiros'); toggleMenu();">Artilheiros</button>
+<button onclick="showPage('botm'); toggleMenu();">BOTM</button>
+<button onclick="showPage('tabela'); toggleMenu();">Tabela</button>
   <button onclick="openLogin(); toggleMenu();">Admin</button>
 </div>
 
