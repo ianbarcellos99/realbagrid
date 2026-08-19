@@ -1,0 +1,8 @@
+{
+  "name": "realbagrid",
+  "compatibility_date": "2026-08-19",
+  "assets": {
+    "directory": "./",
+    "not_found_handling": "single-page-application"
+  }
+}
