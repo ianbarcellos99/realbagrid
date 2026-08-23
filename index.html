@@ -2045,6 +2045,10 @@ function renderPolls(){
           ${S.jogadores.map(j => `<option value="${j.id}" ${selectedVoterId===j.id?'selected':''}>${j.nome}</option>`).join('')}
         </select>
       </div>
+<div style="padding:18px 20px 0 20px">
+  <label style="font-size:1.05rem;font-weight:700">Vote no Bagre of the Match</label>
+  <div style="font-size:.78rem;color:var(--pt);margin:-4px 0 0">Toque no jogador que você escolheu.</div>
+</div>
 
       <div class="vote-grid">
         ${sorted.map(pl => {
