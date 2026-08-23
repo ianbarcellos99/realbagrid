@@ -2037,7 +2037,9 @@ function renderPolls(){
       </div>
 
       <div style="padding:16px 20px 0 20px">
-        <label for="voter-${poll.id}">Quem está votando?</label>
+<label for="voter-${poll.id}" style="font-size:1.05rem;font-weight:700">Quem está votando?</label>
+<div style="font-size:.78rem;color:var(--pt);margin:-4px 0 8px">Aqui você seleciona o SEU nome.</div>
+
         <select id="voter-${poll.id}" onchange="selectVoter('${poll.id}', this.value)">
           <option value="">Selecione um jogador</option>
           ${S.jogadores.map(j => `<option value="${j.id}" ${selectedVoterId===j.id?'selected':''}>${j.nome}</option>`).join('')}
