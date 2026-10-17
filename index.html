@@ -9,7 +9,13 @@
 <meta property="og:site_name" content="Real Bagrid FC">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Real Bagrid FC">
-<meta property="og:image" content="https://www.realbagrid.com.br/logo.png">
+<meta property="og:description" content="Lista do jogo, draft, votação e tabela da BagreLeague.">
+<meta property="og:image" content="https://www.realbagrid.com.br/icons/icon-512.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://www.realbagrid.com.br/icons/icon-512.png">
 
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="manifest" href="/manifest.json">
@@ -1503,7 +1509,7 @@ nav .nav-btn[data-page="votacao"].on{
 <div class="overlay" id="ov-esc-share">
   <div class="modal">
     <button class="x-btn" onclick="closeOv('ov-esc-share')">✕</button>
-    <div class="modal-title">Sua escalação</div>
+    <div class="modal-title" id="esc-share-title">Sua escalação</div>
     <img id="esc-preview-img" class="esc-preview" alt="Prévia da escalação">
     <p class="esc-share-hint">A mensagem já vai copiada. Se a legenda não aparecer no WhatsApp, é só colar.</p>
     <div class="mactions">
@@ -3947,20 +3953,121 @@ async function escGenerate(draftId, btn){
     const canvas = await escBuildImage(d, branco, preto);
     const blob = await new Promise((res, rej) =>
       canvas.toBlob(b => b ? res(b) : rej(new Error('falha ao gerar a imagem')), 'image/png'));
-    const nome = `escalacao-rodada-${d.rodada}.png`;
-    S.escShare = {
-      blob, nome,
-      file: new File([blob], nome, { type: 'image/png' }),
-      texto: `Essa é a minha sugestão para a Rodada ${d.rodada}. O que acham?`
-    };
-    const prev = document.getElementById('esc-preview-img');
-    if(prev.dataset.url) URL.revokeObjectURL(prev.dataset.url);
-    const url = URL.createObjectURL(blob);
-    prev.src = url;
-    prev.dataset.url = url;
-    document.getElementById('ov-esc-share').classList.add('on');
+    abrirCompartilhamento(blob, `escalacao-rodada-${d.rodada}.png`,
+      `Essa é a minha sugestão para a Rodada ${d.rodada}. O que acham?`, 'Sua escalação');
   } catch(err){
     console.error('[draft] erro ao gerar imagem:', err);
+    toast('Erro ao gerar a imagem: ' + (err.message || err), '#c0392b');
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = label; }
+  }
+}
+
+// Abre a prévia com os botões Compartilhar / Baixar
+function abrirCompartilhamento(blob, nome, texto, titulo){
+  S.escShare = { blob, nome, texto, file: new File([blob], nome, { type: 'image/png' }) };
+  const prev = document.getElementById('esc-preview-img');
+  if(prev.dataset.url) URL.revokeObjectURL(prev.dataset.url);
+  const url = URL.createObjectURL(blob);
+  prev.src = url;
+  prev.dataset.url = url;
+  document.getElementById('esc-share-title').textContent = titulo || 'Compartilhar';
+  document.getElementById('ov-esc-share').classList.add('on');
+}
+
+// ─── CARD DA LISTA (admin) ───────────────────────────────
+// Posições na arte da lista (pixels da arte original 941×1672).
+const LISTA_TEMPLATE = {
+  src: '/lista-template.png',
+  largura: 941,
+  altura: 1672,
+  info: {                        // caixas RODADA / DATA / HORÁRIO (valor centralizado)
+    y: 714, size: 48,
+    rodada:  { cx: 180, w: 260 },
+    data:    { cx: 471, w: 270 },
+    horario: { cx: 762, w: 260 }
+  },
+  local:   { x: 68, y: 836, size: 40, maxW: 810 },
+  gk:      [ { x: 122, w: 322, cy: 970 }, { x: 574, w: 308, cy: 970 } ],
+  linha:   { esq: { x: 120, w: 322 }, dir: { x: 565, w: 322 },
+             topo: 1079, altura: 64.9, linhas: 7 },
+  nomeSize: 34
+};
+
+let _listaTplPromise = null;
+function listaLoadTemplate(){
+  if(!_listaTplPromise){
+    _listaTplPromise = new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload  = () => resolve(img);
+      img.onerror = () => { _listaTplPromise = null; reject(new Error('não foi possível carregar a arte da lista')); };
+      img.src = LISTA_TEMPLATE.src;
+    });
+  }
+  return _listaTplPromise;
+}
+
+async function listaBuildImage(l){
+  const [img] = await Promise.all([listaLoadTemplate(), escLoadFonts()]);
+  const T = LISTA_TEMPLATE;
+  const c = document.createElement('canvas');
+  c.width = img.naturalWidth; c.height = img.naturalHeight;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  ctx.scale(img.naturalWidth / T.largura, img.naturalHeight / T.altura);
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#ffffff';
+
+  // Rodada / data / horário
+  const I = T.info;
+  const dataTxt = (() => { if(!l.data) return '—'; const [y,m,d] = l.data.split('-'); return `${d}/${m}`; })();
+  [[String(l.rodada), I.rodada], [dataTxt, I.data], [escFmtHora(l.horario) || '—', I.horario]].forEach(([t, b]) => {
+    ctx.textAlign = 'center';
+    escSpacing(ctx, 2);
+    escFit(ctx, t, 400, ESC_F_TITULO, I.size, b.w);
+    ctx.fillText(t, b.cx, I.y);
+  });
+
+  // Local
+  const loc = (l.local || '').toUpperCase() || '—';
+  ctx.textAlign = 'left';
+  escSpacing(ctx, 2);
+  escFit(ctx, loc, 400, ESC_F_TITULO, T.local.size, T.local.maxW);
+  ctx.fillText(loc, T.local.x, T.local.y);
+
+  // Nomes
+  const s = listaSlots(l);
+  const escreve = (nome, x, w, cy) => {
+    const t = nome.toUpperCase();
+    escSpacing(ctx, 1);
+    escFit(ctx, t, 400, ESC_F_TITULO, T.nomeSize, w);
+    ctx.fillText(t, x, cy);
+  };
+  s.gk.forEach((p, i) => { const g = T.gk[i]; if(g) escreve(p.nome, g.x, g.w, g.cy); });
+  const L = T.linha;
+  s.linha.forEach((p, i) => {
+    const col = i < L.linhas ? L.esq : L.dir;
+    const row = i % L.linhas;
+    escreve(p.nome, col.x, col.w, L.topo + L.altura * row + L.altura / 2);
+  });
+  return c;
+}
+
+async function listaGerarCard(listaId, btn){
+  const l = S.listas.find(x => x.id === listaId);
+  if(!l) return;
+  const label = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = 'Gerando…'; }
+  try {
+    const canvas = await listaBuildImage(l);
+    const blob = await new Promise((res, rej) =>
+      canvas.toBlob(b => b ? res(b) : rej(new Error('falha ao gerar a imagem')), 'image/png'));
+    const texto = l.status === 'aberta'
+      ? `⚽ LISTA DA RODADA ${l.rodada}! Confirme sua presença no app: ${location.origin}/lista`
+      : `📋 Lista fechada da Rodada ${l.rodada}! Agora é montar os times no Draft: ${location.origin}/draft`;
+    abrirCompartilhamento(blob, `lista-rodada-${l.rodada}.png`, texto, `Lista · Rodada ${l.rodada}`);
+  } catch(err){
+    console.error('[lista] erro ao gerar card:', err);
     toast('Erro ao gerar a imagem: ' + (err.message || err), '#c0392b');
   } finally {
     if(btn){ btn.disabled = false; btn.textContent = label; }
@@ -4356,6 +4463,7 @@ function renderAdmListas(){
           <div class="imeta">${escHtml(meta)}${meta ? ' · ' : ''}${s.gk.length + s.linha.length} titulares${l.draftId ? ' · enviada ao Draft' : ''}</div>
         </div>
         <div class="icard-actions">
+          <button class="btn btn-sec btn-sm" onclick="listaGerarCard('${l.id}', this)">📸</button>
           <button class="btn btn-sec btn-sm" onclick="reabrirLista('${l.id}')">Reabrir</button>
           <button class="btn btn-del btn-sm" onclick="excluirLista('${l.id}')">✕</button>
         </div>
@@ -4383,6 +4491,7 @@ function renderAdmListas(){
       ${admListaAddRender(l)}
       <div class="mactions" style="border:none;padding-top:.6rem;margin-top:.2rem">
         <button class="btn btn-del btn-sm" onclick="excluirLista('${l.id}')">Excluir</button>
+        <button class="btn btn-sec btn-sm" onclick="listaGerarCard('${l.id}', this)">📸 Card</button>
         <button class="btn btn-pri" onclick="fecharLista('${l.id}')">🔒 Fechar lista → Draft</button>
       </div>
     </div>`;
