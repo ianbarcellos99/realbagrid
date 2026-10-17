@@ -1094,6 +1094,27 @@ nav .nav-btn[data-page="votacao"].on{
   border:1px solid rgba(29,111,255,.4);border-radius:12px;padding:10px 12px;margin-bottom:14px;
   font-size:.85rem;line-height:1.4}
 .install-hint.show{display:flex}
+.botm-card{position:relative;overflow:hidden;text-align:center;padding:26px 18px 28px;margin-bottom:16px;
+  border-radius:18px;border:1px solid rgba(245,197,24,.55);
+  background:radial-gradient(ellipse 90% 60% at 50% 30%,rgba(245,197,24,.18),transparent 70%),linear-gradient(180deg,#0b1a4a,#08080d)}
+.botm-kicker{font-family:'Barlow Condensed',sans-serif;font-size:.8rem;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--gold)}
+.botm-coroa{font-size:2.6rem;margin:10px 0 -14px;position:relative;z-index:2;filter:drop-shadow(0 0 10px rgba(245,197,24,.7))}
+.botm-foto{width:170px;height:170px;margin:0 auto;border-radius:50%;overflow:hidden;
+  border:5px solid var(--gold);box-shadow:0 0 0 4px rgba(245,197,24,.2),0 0 40px rgba(245,197,24,.45);
+  background:var(--ink3);display:flex;align-items:center;justify-content:center;position:relative;z-index:1}
+.botm-foto img{width:100%;height:100%;object-fit:cover}
+.botm-foto span{font-family:'Anton',sans-serif;font-size:4rem;color:var(--gold)}
+.botm-parabens{font-family:'Anton',sans-serif;font-size:1.3rem;letter-spacing:4px;color:var(--pt);margin-top:16px}
+.botm-nome{font-family:'Anton',sans-serif;font-size:2.4rem;line-height:1.05;color:#fff;text-transform:uppercase;
+  text-shadow:0 0 30px rgba(245,197,24,.5)}
+.botm-votos{display:inline-block;margin-top:12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;font-size:.85rem;color:var(--gold);
+  border:1px solid rgba(245,197,24,.45);border-radius:20px;padding:4px 14px}
+.botm-confete{position:absolute;inset:0;pointer-events:none;z-index:3}
+.botm-confete i{position:absolute;top:-12px;width:8px;height:14px;border-radius:2px;opacity:0;
+  animation:botmCai 2.6s ease-in forwards}
+@keyframes botmCai{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(520px) rotate(540deg)}}
 .notif-bar{display:none;align-items:center;gap:10px;background:rgba(245,197,24,.10);
   border:1px solid rgba(245,197,24,.4);border-radius:12px;padding:10px 12px;margin-bottom:14px;font-size:.85rem;line-height:1.4}
 .notif-bar.show{display:flex}
@@ -1592,6 +1613,7 @@ drGuests: [],             // convidados do formulário de rodada (admin)
 listas: [],               // listas de presença
 listaSel: {},             // {listaId: {jid, pos}} — seleção na página pública
 openPolls: {},            // cards de votação abertos no admin
+botmConfete: {},          // confete já exibido para esta votação
 escShare: null,           // última imagem gerada
 };
 
@@ -1769,7 +1791,8 @@ document.addEventListener('firebaseReady', () => {
           rodada: val.rodada || '',
           players: Array.isArray(val.players) ? val.players : [],
           votes: val.votes && typeof val.votes === 'object' ? val.votes : {},
-          status: val.status === 'closed' ? 'closed' : 'open'
+          status: val.status === 'closed' ? 'closed' : 'open',
+          encerradaEm: val.encerradaEm || 0
         });
       } else {
         console.warn('Votação ignorada por formato inválido:', c.key, val);
@@ -2174,7 +2197,7 @@ function renderPolls(){
   const open = S.polls.filter(p => p.status === 'open');
 
   if(!open.length){
-    el.innerHTML = '<div class="panel"><div class="empty"><div class="ico">🗳️</div><p>Nenhuma votação aberta no momento</p></div></div>';
+    el.innerHTML = botmCardHtml() || '<div class="panel"><div class="empty"><div class="ico">🗳️</div><p>Nenhuma votação aberta no momento</p></div></div>';
     return;
   }
 
@@ -3298,10 +3321,25 @@ async function deletePoll(id){
 async function togglePoll(id){
   const poll=S.polls.find(p=>p.id===id); if(!poll) return;
   const ns=poll.status==='open'?'closed':'open';
-  await fbUpdate(`polls/${id}`,{status:ns});
-  if(!fbReady){poll.status=ns;lsSave();}
+  if(ns==='closed'){
+    const r = pollResultado(poll);
+    if(r.lideres.length > 1){
+      toast(`Empate entre ${r.lideres.map(x=>pollNomeJogador(poll,x)).join(' e ')}. Peça para alguém que não votou desempatar.`, '#c0392b');
+      return;
+    }
+  }
+  const upd = ns==='closed' ? {status:ns, encerradaEm: Date.now()} : {status:ns};
+  await fbUpdate(`polls/${id}`, upd);
+  if(!fbReady){Object.assign(poll, upd);lsSave();}
   renderAdmPolls(); renderPolls();
   toast(ns==='open'?'Votação aberta!':'Votação encerrada!');
+  if(ns==='closed' && pollResultado(poll).lideres.length === 1){
+    pedirNotificacao({
+      titulo: '🏆 VOTAÇÃO ENCERRADA!',
+      texto: `Venha conferir quem foi o Bagre of the Match da ${poll.rodada}!`,
+      url: '/votacao'
+    });
+  }
 }
 
 // ─── SAVE CONFIG ─────────────────────────────────────────
@@ -3410,6 +3448,7 @@ function pollCardHtml(poll){
       </div>
       <div class="poll-card-actions">
         <span class="poll-card-ico" id="ico-${pollCardId}" style="${S.openPolls[pollCardId] ? 'transform:rotate(180deg)' : ''}">▼</span>
+        ${poll.status!=='open' && total ? `<button class="btn btn-sec btn-sm" title="Arte do campeão" onclick="event.stopPropagation();botmGerarCard('${poll.id}', this)">📸</button>` : ''}
         <button class="btn btn-sec btn-sm" onclick="event.stopPropagation();togglePoll('${poll.id}')">${poll.status==='open'?'Encerrar':'Abrir'}</button>
         <button class="btn btn-del btn-sm" onclick="event.stopPropagation();deletePoll('${poll.id}')">✕</button>
       </div>
@@ -4781,6 +4820,165 @@ async function enviarAvisoManual(btn){
   if(!titulo){ toast('Escreva um título', '#c0392b'); return; }
   const ok = await enviarNotificacao({ titulo, texto, url }, btn);
   if(ok){ document.getElementById('av-titulo').value = ''; document.getElementById('av-texto').value = ''; }
+}
+
+// ═══════════════════════════════════════════════════════
+// ─── BAGRE OF THE MATCH: vencedor ───────────────────────
+// ═══════════════════════════════════════════════════════
+// Ao encerrar a votação (sem empate), a página de Votação mostra o card do
+// campeão até a próxima votação abrir. No admin, o botão 📸 gera a arte.
+
+// Resultado de uma votação: líderes (pode ser mais de um em caso de empate)
+function pollResultado(poll){
+  const cont = {};
+  Object.values(poll.votes || {}).forEach(v => { if(v && v.playerId) cont[v.playerId] = (cont[v.playerId] || 0) + 1; });
+  const max = Math.max(0, ...Object.values(cont));
+  const lideres = max ? Object.keys(cont).filter(id => cont[id] === max) : [];
+  return { lideres, votos: max, total: Object.values(cont).reduce((a, b) => a + b, 0) };
+}
+
+function pollNomeJogador(poll, id){
+  const p = (poll.players || []).find(x => x.id === id);
+  return nameById(id) || (p && p.nome) || '?';
+}
+
+function pollRodadaNum(poll){
+  const m = String(poll.rodada || '').match(/\d+/);
+  return m ? m[0] : '';
+}
+
+// Card do campeão na página pública (só quando não há votação aberta)
+function botmCardHtml(){
+  const ultima = S.polls
+    .filter(p => p.status === 'closed')
+    .sort((a, b) => (b.encerradaEm || 0) - (a.encerradaEm || 0))[0];
+  if(!ultima) return '';
+  const r = pollResultado(ultima);
+  if(r.lideres.length !== 1) return '';
+  const id = r.lideres[0];
+  const nome = pollNomeJogador(ultima, id);
+  const j = S.jogadores.find(x => x.id === id) || {};
+  const ini = (nome || '').substring(0, 2).toUpperCase();
+  const foto = j.foto ? `<img src="${j.foto}" alt="${escHtml(nome)}">` : `<span>${escHtml(ini)}</span>`;
+  let confete = '';
+  if(!S.botmConfete[ultima.id]){
+    S.botmConfete[ultima.id] = true;
+    const cores = ['#f5c518', '#ffffff', '#5599ff', '#ffd95a'];
+    confete = '<div class="botm-confete">' + Array.from({ length: 36 }, (_, i) =>
+      `<i style="left:${(i * 37) % 100}%;background:${cores[i % 4]};animation-delay:${(i % 9) * 0.12}s;animation-duration:${2.2 + (i % 5) * 0.35}s"></i>`).join('') + '</div>';
+  }
+  return `<div class="botm-card">
+    ${confete}
+    <div class="botm-kicker">🏆 Bagre of the Match · ${escHtml(ultima.rodada)}</div>
+    <div class="botm-coroa">👑</div>
+    <div class="botm-foto">${foto}</div>
+    <div class="botm-parabens">PARABÉNS,</div>
+    <div class="botm-nome">${escHtml(nome)}!</div>
+    <div class="botm-votos">${r.votos} voto${r.votos !== 1 ? 's' : ''} de ${r.total}</div>
+  </div>`;
+}
+
+// ─── ARTE DO CAMPEÃO (admin) ─────────────────────────────
+const BOTM_TEMPLATE = {
+  src: '/botm-template.png',
+  largura: 941,
+  altura: 1672,
+  foto:   { cx: 470, cy: 842, r: 332 },
+  nome:   { cx: 470, cy: 1272, w: 760, size: 92 },
+  rodada: { cx: 283, cy: 1484, w: 300, size: 76 },
+  votos:  { cx: 660, cy: 1484, w: 300, size: 76 }
+};
+
+let _botmTplPromise = null;
+function botmLoadTemplate(){
+  if(!_botmTplPromise){
+    _botmTplPromise = new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload  = () => resolve(img);
+      img.onerror = () => { _botmTplPromise = null; reject(new Error('não foi possível carregar a arte')); };
+      img.src = BOTM_TEMPLATE.src;
+    });
+  }
+  return _botmTplPromise;
+}
+
+function carregarImagem(src){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('foto inválida'));
+    img.src = src;
+  });
+}
+
+async function botmBuildImage(poll, id, votos){
+  const [tpl] = await Promise.all([botmLoadTemplate(), escLoadFonts()]);
+  const T = BOTM_TEMPLATE;
+  const c = document.createElement('canvas');
+  c.width = tpl.naturalWidth; c.height = tpl.naturalHeight;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(tpl, 0, 0);
+  ctx.scale(tpl.naturalWidth / T.largura, tpl.naturalHeight / T.altura);
+
+  const nome = pollNomeJogador(poll, id);
+  const j = S.jogadores.find(x => x.id === id) || {};
+  const F = T.foto;
+
+  // Foto (ou iniciais) dentro do círculo
+  ctx.save();
+  ctx.beginPath(); ctx.arc(F.cx, F.cy, F.r, 0, Math.PI * 2); ctx.clip();
+  let foto = null;
+  if(j.foto){ try { foto = await carregarImagem(j.foto); } catch(e){} }
+  if(foto){
+    const s = Math.max((F.r * 2) / foto.naturalWidth, (F.r * 2) / foto.naturalHeight);
+    const w = foto.naturalWidth * s, h = foto.naturalHeight * s;
+    ctx.drawImage(foto, F.cx - w / 2, F.cy - h / 2, w, h);
+  } else {
+    ctx.fillStyle = '#0b1a4a';
+    ctx.fillRect(F.cx - F.r, F.cy - F.r, F.r * 2, F.r * 2);
+    ctx.fillStyle = '#f5c518';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `400 260px ${ESC_F_TITULO}`;
+    ctx.fillText(nome.substring(0, 2).toUpperCase(), F.cx, F.cy + 10);
+  }
+  ctx.restore();
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const escreve = (txt, b, cor) => {
+    ctx.fillStyle = cor;
+    escSpacing(ctx, 2);
+    escFit(ctx, txt, 400, ESC_F_TITULO, b.size, b.w);
+    ctx.fillText(txt, b.cx, b.cy);
+  };
+  escreve(nome.toUpperCase(), T.nome, '#ffffff');
+  escreve(pollRodadaNum(poll) || String(poll.rodada || '').toUpperCase(), T.rodada, '#ffffff');
+  escreve(String(votos), T.votos, '#f5c518');
+  return c;
+}
+
+async function botmGerarCard(pollId, btn){
+  const poll = S.polls.find(p => p.id === pollId);
+  if(!poll) return;
+  const r = pollResultado(poll);
+  if(!r.lideres.length){ toast('Essa votação não tem votos', '#c0392b'); return; }
+  if(r.lideres.length > 1){ toast('Empate! Desempate antes de gerar a arte.', '#c0392b'); return; }
+  const label = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = '…'; }
+  try {
+    const id = r.lideres[0];
+    const canvas = await botmBuildImage(poll, id, r.votos);
+    const blob = await new Promise((res, rej) =>
+      canvas.toBlob(b => b ? res(b) : rej(new Error('falha ao gerar a imagem')), 'image/png'));
+    const nome = pollNomeJogador(poll, id);
+    abrirCompartilhamento(blob, `botm-${pollRodadaNum(poll) || 'rodada'}.png`,
+      `🏆 ${nome} é o Bagre of the Match da ${poll.rodada}! Parabéns, bagre!`, 'Bagre of the Match');
+  } catch(err){
+    console.error('[botm] erro ao gerar arte:', err);
+    toast('Erro ao gerar a imagem: ' + (err.message || err), '#c0392b');
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = label; }
+  }
 }
 
 // ─── RENDER ALL ──────────────────────────────────────────
