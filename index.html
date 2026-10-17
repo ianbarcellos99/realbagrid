@@ -391,7 +391,7 @@ nav{display:flex;align-items:center;gap:4px}
 /* FORM */
 label{display:block;font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;
   letter-spacing:2px;text-transform:uppercase;color:var(--pt);margin:14px 0 5px}
-input[type=text],input[type=number],input[type=password],input[type=date],select,textarea{
+input[type=text],input[type=number],input[type=password],input[type=date],input[type=time],select,textarea{
   width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
   border-radius:8px;padding:10px 13px;color:var(--br);font-family:'Barlow',sans-serif;
   font-size:.93rem;outline:none;transition:border .2s}
@@ -1094,6 +1094,13 @@ nav .nav-btn[data-page="votacao"].on{
   border:1px solid rgba(29,111,255,.4);border-radius:12px;padding:10px 12px;margin-bottom:14px;
   font-size:.85rem;line-height:1.4}
 .install-hint.show{display:flex}
+.notif-bar{display:none;align-items:center;gap:10px;background:rgba(245,197,24,.10);
+  border:1px solid rgba(245,197,24,.4);border-radius:12px;padding:10px 12px;margin-bottom:14px;font-size:.85rem;line-height:1.4}
+.notif-bar.show{display:flex}
+.notif-bar .btn{margin-left:auto;flex-shrink:0}
+.nt-para{font-family:'Barlow Condensed',sans-serif;font-size:.78rem;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+#nt-texto,#av-texto{width:100%;min-height:80px;resize:vertical}
 .install-hint img{width:36px;height:36px;border-radius:9px;flex-shrink:0}
 .install-hint button{background:none;border:none;color:var(--pt);font-size:1rem;cursor:pointer;padding:4px 6px;margin-left:auto}
 .adm-ico{display:none}
@@ -1108,6 +1115,10 @@ nav .nav-btn[data-page="votacao"].on{
   .adm-txt{display:none}
   .adm-ico{display:inline}
   .atabs{display:grid;grid-template-columns:repeat(3,1fr)}
+  /* iPhone: campos com 16px evitam o zoom automático que fazia a tela deslizar */
+  input,select,textarea{font-size:16px!important}
+  .modal{overflow-x:hidden}
+  .overlay{overflow-x:hidden}
   .atab{letter-spacing:.8px;padding:9px 4px}
 }
 </style>
@@ -1151,6 +1162,11 @@ nav .nav-btn[data-page="votacao"].on{
     <img src="/icons/apple-touch-icon.png" alt="">
     <div><b>Instale o app do Bagrid!</b><br>Toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>.</div>
     <button type="button" onclick="fecharInstallHint()" aria-label="Fechar">✕</button>
+  </div>
+
+  <div class="notif-bar" id="notif-bar">
+    <div>🔔 <b>Ative as notificações</b> para saber na hora quando a lista abrir!</div>
+    <button type="button" class="btn btn-pri btn-sm" onclick="ativarNotificacoes(this)">Ativar</button>
   </div>
 
   <!-- TABELA -->
@@ -1265,6 +1281,7 @@ nav .nav-btn[data-page="votacao"].on{
       <button class="atab"    onclick="aTab('lista',this)">Lista</button>
       <button class="atab"    onclick="aTab('draft',this)">Draft</button>
       <button class="atab"    onclick="aTab('votacao',this)">Votações</button>
+      <button class="atab"    onclick="aTab('avisos',this); contarInscritos()">Avisos</button>
       <button class="atab"    onclick="aTab('config',this)">Config</button>
     </div>
 
@@ -1478,6 +1495,27 @@ nav .nav-btn[data-page="votacao"].on{
       </div>
     </div>
 
+    <!-- AVISOS -->
+    <div class="asec" id="asec-avisos">
+      <div class="esc-intro" id="av-inscritos" style="margin-bottom:12px">📱 Contando celulares…</div>
+      <div class="sh" style="margin-bottom:.6rem"><h2 style="font-size:1.1rem">Enviar Aviso</h2></div>
+      <label>Título</label>
+      <input type="text" id="av-titulo" maxlength="120" placeholder="Ex: ⚠️ JOGO CANCELADO">
+      <label>Mensagem</label>
+      <textarea id="av-texto" maxlength="300" placeholder="Ex: Choveu demais, o campo fechou. Semana que vem tem!"></textarea>
+      <label>Ao tocar, abre</label>
+      <select id="av-link">
+        <option value="/">Tabela</option>
+        <option value="/lista">Lista</option>
+        <option value="/draft">Draft</option>
+        <option value="/votacao">Votação</option>
+        <option value="/partidas">Partidas</option>
+      </select>
+      <div class="mactions" style="border:none;padding-top:.8rem;margin-top:.3rem">
+        <button class="btn btn-pri" onclick="enviarAvisoManual(this)">🔔 Enviar para todos</button>
+      </div>
+    </div>
+
     <!-- CONFIG -->
     <div class="asec" id="asec-config">
       <label>Nome da Temporada</label>
@@ -1489,6 +1527,23 @@ nav .nav-btn[data-page="votacao"].on{
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- NOTIFICAÇÃO — CONFIRMAR ENVIO (ADMIN) -->
+<div class="overlay" id="ov-notif">
+  <div class="modal">
+    <button class="x-btn" onclick="closeOv('ov-notif')">✕</button>
+    <div class="modal-title">🔔 Enviar notificação?</div>
+    <div class="nt-para" id="nt-para">Para: Todos</div>
+    <label>Título</label>
+    <input type="text" id="nt-titulo" maxlength="120">
+    <label>Mensagem</label>
+    <textarea id="nt-texto" maxlength="300"></textarea>
+    <div class="mactions">
+      <button class="btn btn-sec btn-sm" onclick="closeOv('ov-notif')">Não enviar</button>
+      <button class="btn btn-pri" onclick="confirmarNotificacao(this)">🔔 Enviar</button>
+    </div>
   </div>
 </div>
 
@@ -3222,6 +3277,11 @@ async function savePoll(){
   document.getElementById('v-rodada').value = '';
   document.querySelectorAll('#check-vote input').forEach(cb => cb.checked = false);
   toast('Votação criada!', '#13803a');
+  if(data.status === 'open') pedirNotificacao({
+    titulo: '🗳️ VOTAÇÃO ABERTA!',
+    texto: `${rodada} — Vote no seu Bagre!!`,
+    url: '/votacao'
+  });
 }
 
 async function deletePoll(id){
@@ -4117,7 +4177,11 @@ const LISTA_VAGAS = { GK: 2, LINHA: 14 };
 const LS_MEU_JOGADOR = 'rb_meu_jogador';
 
 function meuJogadorLoad(){ try { return localStorage.getItem(LS_MEU_JOGADOR) || ''; } catch(e){ return ''; } }
-function meuJogadorSave(id){ try { localStorage.setItem(LS_MEU_JOGADOR, id); } catch(e){} }
+function meuJogadorSave(id){
+  let antes = '';
+  try { antes = localStorage.getItem(LS_MEU_JOGADOR) || ''; localStorage.setItem(LS_MEU_JOGADOR, id); } catch(e){}
+  if(id !== antes && typeof initNotificacoes === 'function') initNotificacoes();
+}
 
 // Dados de exibição de uma confirmação (cadastrado ou convidado)
 function listaPessoa(key, c){
@@ -4317,6 +4381,12 @@ async function abrirLista(){
   }
   toast(`📋 Lista da Rodada ${rodada} aberta!`, '#13803a');
   clearListaForm();
+  const quando = [payload.data ? escFmtData(payload.data) : '', escFmtHora(payload.horario)].filter(Boolean).join(' · ');
+  pedirNotificacao({
+    titulo: '⚽ LISTA ABERTA PARA O JOGO!',
+    texto: `Rodada ${rodada}${quando ? ' — ' + quando.toLowerCase() : ''}. E aí? Vai querer ficar de fora!? VEM!!!`,
+    url: '/lista'
+  });
 }
 
 function admListaAddRender(l){
@@ -4384,8 +4454,22 @@ async function admListaRemover(listaId, key){
     const depois = listaSlots({ ...l, confirmados: conf });
     const titAntes = new Set([...antes.gk, ...antes.linha].map(x => x.key));
     const subiu = [...depois.gk, ...depois.linha].find(x => !titAntes.has(x.key));
-    if(subiu) toast(`⬆️ ${subiu.nome} subiu para titular`, '#13803a');
-    else toast(`Abriu uma vaga de ${p.pos === 'GK' ? 'goleiro' : 'linha'}`, '#b8860b');
+    if(subiu){
+      toast(`⬆️ ${subiu.nome} subiu para titular`, '#13803a');
+      if(subiu.jid) pedirNotificacao({
+        titulo: '⬆️ VOCÊ ENTROU NO JOGO!',
+        texto: `Abriu vaga e você subiu para titular na Rodada ${l.rodada}. Bora, bagre!`,
+        url: '/lista',
+        jids: [subiu.jid]
+      });
+    } else {
+      toast(`Abriu uma vaga de ${p.pos === 'GK' ? 'goleiro' : 'linha'}`, '#b8860b');
+      pedirNotificacao({
+        titulo: '🚨 ABRIU VAGA!',
+        texto: `Abriu vaga de ${p.pos === 'GK' ? 'GOLEIRO' : 'LINHA'} na Rodada ${l.rodada}. Corre pra confirmar!`,
+        url: '/lista'
+      });
+    }
   } else {
     toast(`${p.nome} removido`, '#666');
   }
@@ -4426,6 +4510,11 @@ async function fecharLista(listaId){
     lsSave(); renderDrafts(); renderAdmDrafts(); renderListas(); renderAdmListas();
   }
   toast(`🔒 Lista fechada — Rodada ${l.rodada} já está no Draft!`, '#13803a');
+  pedirNotificacao({
+    titulo: '🔒 LISTA FECHADA!',
+    texto: `Os 16 da Rodada ${l.rodada} estão definidos. Monte sua escalação no Draft!`,
+    url: '/draft'
+  });
 }
 
 async function reabrirLista(listaId){
@@ -4534,6 +4623,166 @@ function fecharInstallHint(){
   try { localStorage.setItem('rb_install_hint', '1'); } catch(e){}
 }
 
+// ═══════════════════════════════════════════════════════
+// ─── NOTIFICAÇÕES ───────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+// Celular: a pessoa toca em "Ativar" → o celular gera um "endereço" de
+// notificação → ele é guardado no Firebase (push/subs).
+// Admin: ao abrir lista / votação etc., aparece a janela com o texto pronto →
+// "Enviar" chama o servidor do Cloudflare (/api/notify), que dispara para todos.
+
+const VAPID_PUBLIC = 'BEUa95vXGNcxX3QOIn53nC_Zb7g7J8PAD7pPTdqZtJms0RKUffsKP-QVRRqpsoE7D7_8sq2deXoximwnqTbhw7s';
+
+function pushSuportado(){
+  return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+}
+
+function b64uToBytes(s){
+  s = s.replace(/-/g, '+').replace(/_/g, '/');
+  while(s.length % 4) s += '=';
+  const bin = atob(s);
+  return Uint8Array.from(bin, c => c.charCodeAt(0));
+}
+
+async function pushChave(endpoint){
+  const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(endpoint));
+  return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
+}
+
+async function pushSalvar(sub){
+  const j = sub.toJSON();
+  const key = await pushChave(j.endpoint);
+  await fbSet(`push/subs/${key}`, {
+    endpoint: j.endpoint,
+    keys: { p256dh: j.keys.p256dh, auth: j.keys.auth },
+    jid: meuJogadorLoad() || '',
+    atualizadoEm: Date.now()
+  });
+}
+
+async function ativarNotificacoes(btn){
+  if(!pushSuportado()){ toast('Este celular não suporta notificações. No iPhone, instale o app primeiro.', '#c0392b'); return; }
+  if(btn){ btn.disabled = true; btn.textContent = 'Ativando…'; }
+  try {
+    const perm = await Notification.requestPermission();
+    if(perm !== 'granted'){
+      toast('Notificações não autorizadas. Dá para liberar nos Ajustes do celular.', '#c0392b');
+      return;
+    }
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if(!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(VAPID_PUBLIC) });
+    await pushSalvar(sub);
+    toast('🔔 Notificações ativadas!', '#13803a');
+  } catch(err){
+    console.error('[push] erro ao ativar:', err);
+    toast('Não foi possível ativar: ' + (err.message || err), '#c0392b');
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = 'Ativar'; }
+    atualizarBarraNotif();
+  }
+}
+
+function atualizarBarraNotif(){
+  const bar = document.getElementById('notif-bar');
+  if(!bar) return;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const mostrar = pushSuportado() && Notification.permission === 'default' && (!ios || isStandalone());
+  bar.classList.toggle('show', mostrar);
+}
+
+// Se já autorizou antes, garante que o endereço está salvo (e com o nome atual)
+async function initNotificacoes(){
+  atualizarBarraNotif();
+  if(!pushSuportado() || Notification.permission !== 'granted') return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if(!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(VAPID_PUBLIC) });
+    const salvar = () => pushSalvar(sub).catch(e => console.warn('[push] não salvou:', e));
+    if(fbReady) salvar(); else document.addEventListener('firebaseReady', salvar, { once: true });
+  } catch(e){ console.warn('[push] init:', e); }
+}
+
+// ─── ADMIN: janela de envio ──────────────────────────────
+let _notifPendente = null;
+
+function pedirNotificacao(n){
+  _notifPendente = n;
+  document.getElementById('nt-titulo').value = n.titulo || '';
+  document.getElementById('nt-texto').value = n.texto || '';
+  const para = (n.jids && n.jids.length) ? n.jids.map(nameById).filter(Boolean).join(', ') : 'Todos';
+  document.getElementById('nt-para').textContent = 'Para: ' + para;
+  document.getElementById('ov-notif').classList.add('on');
+}
+
+async function confirmarNotificacao(btn){
+  if(!_notifPendente) return;
+  const n = {
+    ..._notifPendente,
+    titulo: document.getElementById('nt-titulo').value.trim(),
+    texto: document.getElementById('nt-texto').value.trim()
+  };
+  if(!n.titulo){ toast('Escreva um título', '#c0392b'); return; }
+  const ok = await enviarNotificacao(n, btn);
+  if(ok){ closeOv('ov-notif'); _notifPendente = null; }
+}
+
+async function enviarNotificacao(n, btn){
+  if(!isAdminLogged || !window._auth || !window._auth.currentUser){ toast('Faça login no admin', '#c0392b'); return false; }
+  const label = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = 'Enviando…'; }
+  try {
+    const token = await window._auth.currentUser.getIdToken();
+    const res = await fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'authorization': 'Bearer ' + token },
+      body: JSON.stringify({ titulo: n.titulo, texto: n.texto, url: n.url || '/', jids: n.jids || null })
+    });
+    let r = {};
+    try { r = await res.json(); } catch(e){}
+    if(!res.ok){
+      toast('Erro ao enviar: ' + (r.erro || `servidor respondeu ${res.status}`), '#c0392b');
+      return false;
+    }
+    if(!r.enviadas) toast('Ninguém recebeu — ainda não há celulares com notificação ativada' + (n.jids ? ' para esse jogador' : ''), '#b8860b');
+    else toast(`🔔 Enviada para ${r.enviadas} celular${r.enviadas !== 1 ? 'es' : ''}`, '#13803a');
+    contarInscritos();
+    return true;
+  } catch(err){
+    console.error('[push] erro ao enviar:', err);
+    toast('Erro ao enviar: ' + (err.message || err), '#c0392b');
+    return false;
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = label; }
+  }
+}
+
+// ─── ADMIN: aba Avisos ───────────────────────────────────
+async function contarInscritos(){
+  const el = document.getElementById('av-inscritos');
+  if(!el || !fbReady) return;
+  try {
+    const snap = await window._get(window._ref(window._db, 'push/subs'));
+    const v = snap.val() || {};
+    const n = Object.keys(v).length;
+    const nomes = [...new Set(Object.values(v).map(s => nameById(s && s.jid)).filter(Boolean))];
+    el.innerHTML = `📱 <b>${n}</b> celular${n !== 1 ? 'es' : ''} com notificação ativada` +
+      (nomes.length ? `<br><small>${nomes.map(escHtml).join(', ')}</small>` : '');
+  } catch(e){
+    el.textContent = 'Não foi possível contar os celulares inscritos (confira as regras do Firebase).';
+  }
+}
+
+async function enviarAvisoManual(btn){
+  const titulo = document.getElementById('av-titulo').value.trim();
+  const texto = document.getElementById('av-texto').value.trim();
+  const url = document.getElementById('av-link').value;
+  if(!titulo){ toast('Escreva um título', '#c0392b'); return; }
+  const ok = await enviarNotificacao({ titulo, texto, url }, btn);
+  if(ok){ document.getElementById('av-titulo').value = ''; document.getElementById('av-texto').value = ''; }
+}
+
 // ─── RENDER ALL ──────────────────────────────────────────
 function renderAll(){
 renderStandings();
@@ -4556,6 +4805,7 @@ renderAdmListas();
 lsLoad();
 if(!S.listas) S.listas = [];
 initAppInstall();
+initNotificacoes();
 
 
 setTimeout(()=>{ if(!fbReady){ document.getElementById('fb-warn').classList.add('show'); renderAll(); } }, 2500);
