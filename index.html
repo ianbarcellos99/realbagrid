@@ -1094,6 +1094,14 @@ nav .nav-btn[data-page="votacao"].on{
   border:1px solid rgba(29,111,255,.4);border-radius:12px;padding:10px 12px;margin-bottom:14px;
   font-size:.85rem;line-height:1.4}
 .install-hint.show{display:flex}
+.oficial-card{border-color:rgba(245,197,24,.5)}
+.oficial-selo{display:inline-block;margin:-4px 0 12px;padding:5px 14px;border-radius:20px;
+  background:linear-gradient(180deg,#ffe27a,#d9a50f);color:#0b1a4a;
+  font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:900;letter-spacing:2px;text-transform:uppercase}
+.oficial-img{display:block;width:100%;max-width:420px;margin:0 auto;border-radius:12px;background:#0b1a4a;min-height:120px}
+.oficial-gerando{text-align:center;color:var(--pt);font-family:'Barlow Condensed',sans-serif;font-size:.85rem;margin-top:-80px;height:80px}
+.m-import{background:rgba(245,197,24,.06);border:1px solid rgba(245,197,24,.3);border-radius:10px;padding:10px 12px;margin-bottom:12px}
+.m-import-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-top:6px}
 .botm-card{position:relative;overflow:hidden;text-align:center;padding:26px 18px 28px;margin-bottom:16px;
   border-radius:18px;border:1px solid rgba(245,197,24,.55);
   background:radial-gradient(ellipse 90% 60% at 50% 30%,rgba(245,197,24,.18),transparent 70%),linear-gradient(180deg,#0b1a4a,#08080d)}
@@ -1254,7 +1262,7 @@ nav .nav-btn[data-page="votacao"].on{
   <div id="page-draft" class="page">
     <div class="sh" style="margin-top:1rem"><h2>Draft de Escalação</h2><div class="bar"></div><div class="tag">Monte</div></div>
 
-    <div class="esc-intro">
+    <div class="esc-intro" id="draft-intro">
       Toque em <b>⚪</b> ou <b>⚫</b> ao lado de cada jogador para montar os times.
       Com todos escalados, toque em <b>Gerar imagem</b> e compartilhe no grupo.
     </div>
@@ -1360,6 +1368,13 @@ nav .nav-btn[data-page="votacao"].on{
 
       <!-- FORMULÁRIO PARTIDA NORMAL -->
       <div id="form-normal">
+        <div class="m-import">
+          <label style="margin-top:0">⚡ Preencher com a escalação oficial</label>
+          <div class="m-import-row">
+            <select id="m-import"><option value="">Nenhuma escalação oficial ainda</option></select>
+            <button type="button" class="btn btn-sec btn-sm" onclick="preencherPartidaComOficial()">Preencher</button>
+          </div>
+        </div>
         <input type="hidden" id="m-id">
         <div class="row2">
           <div><label>Rodada</label><input type="text" id="m-rodada" placeholder="Ex: Rodada 1"></div>
@@ -1551,6 +1566,21 @@ nav .nav-btn[data-page="votacao"].on{
   </div>
 </div>
 
+<!-- DRAFT — ESCALAÇÃO OFICIAL (ADMIN) -->
+<div class="overlay" id="ov-oficial">
+  <div class="modal lg">
+    <button class="x-btn" onclick="closeOv('ov-oficial')">✕</button>
+    <div class="modal-title" id="of-titulo">Escalação oficial</div>
+    <div class="esc-count" id="of-count"></div>
+    <div class="esc-list" id="of-list"></div>
+    <div class="mactions">
+      <button class="btn btn-del btn-sm" id="of-remover" onclick="removerOficial()">Remover oficial</button>
+      <button class="btn btn-sec btn-sm" onclick="closeOv('ov-oficial')">Cancelar</button>
+      <button class="btn btn-pri" onclick="salvarOficial(this)">✅ Definir como oficial</button>
+    </div>
+  </div>
+</div>
+
 <!-- NOTIFICAÇÃO — CONFIRMAR ENVIO (ADMIN) -->
 <div class="overlay" id="ov-notif">
   <div class="modal">
@@ -1614,6 +1644,8 @@ listas: [],               // listas de presença
 listaSel: {},             // {listaId: {jid, pos}} — seleção na página pública
 openPolls: {},            // cards de votação abertos no admin
 botmConfete: {},          // confete já exibido para esta votação
+oficialEdit: null,        // editor da escalação oficial (admin)
+partidaDoDraft: '',       // partida sendo preenchida a partir de um draft
 escShare: null,           // última imagem gerada
 };
 
@@ -1745,11 +1777,14 @@ document.addEventListener('firebaseReady', () => {
         local: v.local || '',
         jogadores: Array.isArray(v.jogadores) ? v.jogadores : (v.jogadores ? Object.values(v.jogadores) : []),
         convidados: Array.isArray(v.convidados) ? v.convidados : (v.convidados ? Object.values(v.convidados) : []),
+        listaId: v.listaId || '',
+        oficial: v.oficial && v.oficial.sel ? v.oficial : null,
         criadoEm: v.criadoEm || 0
       });
     });
     S.drafts.sort((a,b) => (b.rodada - a.rodada) || (b.criadoEm - a.criadoEm));
     renderDrafts();
+    renderPartidaImport();
     renderAdmDrafts();
   });
 
@@ -1969,6 +2004,7 @@ function openAdmin(){
   renderDraftChecks();
   renderAdmDrafts();
   renderAdmListas();
+  renderPartidaImport();
   if(!document.getElementById('ls-rodada').value) document.getElementById('ls-rodada').value = suggestNextRodada();
   if(!document.getElementById('dr-id').value) document.getElementById('dr-rodada').value = suggestNextRodada();
   document.getElementById('cfg-season').value = S.temporada;
@@ -2529,6 +2565,10 @@ async function saveMatch(){
       toast('Partida registrada!');
       renderAdmMatches();renderMatches();renderStandings();
     }
+    clearMForm();
+    S.partidaDoDraft = '';
+    await oferecerVotacao(data);
+    return;
   }
   clearMForm();
 }
@@ -3806,6 +3846,8 @@ async function saveDraftRodada(){
     convidados: S.drGuests.map(g => ({ id: g.id, nome: g.nome, numero: g.numero || '' })),
     criadoEm:   existing ? existing.criadoEm : Date.now()
   };
+  if(existing && existing.listaId) payload.listaId = existing.listaId;
+  if(existing && existing.oficial) payload.oficial = existing.oficial;
 
   try {
     if(id) await fbSet(`drafts/${id}`, payload);
@@ -3856,6 +3898,7 @@ function renderAdmDrafts(){
         <div class="imeta">${escHtml(meta)}</div>
       </div>
       <div class="icard-actions">
+        <button class="btn btn-sm ${d.oficial ? 'btn-sec' : 'btn-pri'}" onclick="abrirEditorOficial('${d.id}')">${d.oficial ? '✓ Oficial' : '⚽ Oficial'}</button>
         <button class="btn btn-sec btn-sm" onclick="editDraftRodada('${d.id}')">Editar</button>
         <button class="btn btn-del btn-sm" onclick="deleteDraftRodada('${d.id}')">✕</button>
       </div>
@@ -3871,7 +3914,16 @@ function renderDrafts(){
     el.innerHTML = '<div class="panel"><div class="empty"><div class="ico">🎯</div><p>Nenhuma rodada aberta para montar</p></div></div>';
     return;
   }
-  el.innerHTML = S.drafts.map(escCardHtml).join('');
+  // mostra só a rodada mais recente; com escalação oficial, mostra a arte oficial
+  const d = S.drafts[0];
+  const intro = document.getElementById('draft-intro');
+  if(intro) intro.style.display = d.oficial ? 'none' : '';
+  if(d.oficial){
+    el.innerHTML = oficialCardHtml(d);
+    oficialRenderImg(d);
+  } else {
+    el.innerHTML = escCardHtml(d);
+  }
 }
 
 function escCardHtml(d){
@@ -3992,7 +4044,7 @@ function escDrawColumn(ctx, box, list){
   });
 }
 
-async function escBuildImage(d, branco, preto){
+async function escBuildImage(d, branco, preto, oficial){
   const [img] = await Promise.all([escLoadTemplate(), escLoadFonts()]);
   const T = ESC_TEMPLATE;
   const c = document.createElement('canvas');
@@ -4031,7 +4083,33 @@ async function escBuildImage(d, branco, preto){
   // Colunas
   escDrawColumn(ctx, T.colunas.branco, branco);
   escDrawColumn(ctx, T.colunas.preto, preto);
+  if(oficial) escDrawSeloOficial(ctx);
   return c;
+}
+
+// Selo "ESCALAÇÃO OFICIAL" no rodapé da arte (entre os filetes dourados)
+function escDrawSeloOficial(ctx){
+  const cx = 470, cy = 1580, w = 500, h = 70, r = 35;
+  const x = cx - w / 2, y = cy - h / 2;
+  ctx.save();
+  ctx.shadowColor = 'rgba(245,197,24,.55)';
+  ctx.shadowBlur = 24;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.arc(x + w - r, cy, r, -Math.PI / 2, Math.PI / 2);
+  ctx.lineTo(x + r, y + h); ctx.arc(x + r, cy, r, Math.PI / 2, Math.PI * 1.5); ctx.closePath();
+  const g = ctx.createLinearGradient(0, y, 0, y + h);
+  g.addColorStop(0, '#ffe27a'); g.addColorStop(1, '#d9a50f');
+  ctx.fillStyle = g;
+  ctx.fill();
+  ctx.restore();
+  ctx.save();
+  ctx.fillStyle = '#0b1a4a';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  escSpacing(ctx, 4);
+  escFit(ctx, '✓ ESCALAÇÃO OFICIAL', 400, ESC_F_TITULO, 40, w - 60);
+  ctx.fillText('✓ ESCALAÇÃO OFICIAL', cx, cy + 2);
+  ctx.restore();
 }
 
 async function escGenerate(draftId, btn){
@@ -4979,6 +5057,234 @@ async function botmGerarCard(pollId, btn){
   } finally {
     if(btn){ btn.disabled = false; btn.textContent = label; }
   }
+}
+
+// ═══════════════════════════════════════════════════════
+// ─── ESCALAÇÃO OFICIAL ──────────────────────────────────
+// ═══════════════════════════════════════════════════════
+// Admin → Draft → "⚽ Oficial": o admin divide os jogadores em Branco x Preto
+// e salva em drafts/{id}/oficial. A página Draft passa a mostrar a arte
+// oficial (com selo) no lugar das sugestões. Depois, Admin → Partidas pode
+// ser preenchido com esses times, e ao salvar a partida o admin pode abrir
+// a votação do BOTM com quem jogou: LISTA → DRAFT → PARTIDA → VOTAÇÃO.
+
+// Times oficiais (listas de participantes) de um draft
+function oficialTimes(d){
+  if(!d || !d.oficial || !d.oficial.sel) return null;
+  const sel = d.oficial.sel;
+  const entries = escEntries(d);
+  return {
+    branco: entries.filter(e => sel[e.key] === 'B'),
+    preto:  entries.filter(e => sel[e.key] === 'P')
+  };
+}
+
+// ─── ADMIN: editor ───────────────────────────────────────
+function abrirEditorOficial(draftId){
+  const d = S.drafts.find(x => x.id === draftId);
+  if(!d) return;
+  // começa da oficial já salva; se não houver, da sugestão montada neste aparelho
+  const base = (d.oficial && d.oficial.sel) || S.escSel[draftId] || {};
+  S.oficialEdit = { draftId, sel: { ...base } };
+  document.getElementById('of-titulo').textContent = `Escalação oficial · Rodada ${d.rodada}`;
+  document.getElementById('of-remover').style.display = d.oficial ? '' : 'none';
+  renderEditorOficial();
+  document.getElementById('ov-oficial').classList.add('on');
+}
+
+function renderEditorOficial(){
+  const ed = S.oficialEdit;
+  if(!ed) return;
+  const d = S.drafts.find(x => x.id === ed.draftId);
+  if(!d) return;
+  const entries = escEntries(d);
+  let nB = 0, nP = 0;
+  entries.forEach(e => { if(ed.sel[e.key] === 'B') nB++; else if(ed.sel[e.key] === 'P') nP++; });
+  const falta = entries.length - nB - nP;
+  document.getElementById('of-count').innerHTML = `
+    <span class="esc-pill branco">⚪ Branco ${nB}</span>
+    <span class="esc-pill preto">⚫ Preto ${nP}</span>
+    ${falta > 0 ? `<span class="esc-pill falta">Faltam ${falta}</span>` : `<span class="esc-pill ok">✓ Todos escalados</span>`}`;
+  document.getElementById('of-list').innerHTML = entries.map(e => {
+    const t = ed.sel[e.key];
+    const cls = t === 'B' ? ' branco' : t === 'P' ? ' preto' : '';
+    return `<div class="esc-row${cls}">
+      <span class="esc-num">${escHtml(e.numero || '00')}</span>
+      <span class="esc-name">${escHtml(e.nome)}${e.guest ? '<span class="esc-guest">CONVIDADO</span>' : ''}</span>
+      <div class="esc-btns">
+        <button type="button" class="esc-btn b${t==='B'?' on':''}" aria-label="Time Branco" onclick="oficialPick('${e.key}','B')"></button>
+        <button type="button" class="esc-btn p${t==='P'?' on':''}" aria-label="Time Preto" onclick="oficialPick('${e.key}','P')"></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function oficialPick(key, team){
+  const ed = S.oficialEdit;
+  if(!ed) return;
+  if(ed.sel[key] === team) delete ed.sel[key]; else ed.sel[key] = team;
+  renderEditorOficial();
+}
+
+async function salvarOficial(btn){
+  const ed = S.oficialEdit;
+  if(!ed) return;
+  const d = S.drafts.find(x => x.id === ed.draftId);
+  if(!d) return;
+  const entries = escEntries(d);
+  const sel = {};
+  entries.forEach(e => { if(ed.sel[e.key] === 'B' || ed.sel[e.key] === 'P') sel[e.key] = ed.sel[e.key]; });
+  const falta = entries.length - Object.keys(sel).length;
+  if(falta > 0){ toast(falta === 1 ? 'Falta escalar 1 jogador' : `Faltam escalar ${falta} jogadores`, '#c0392b'); return; }
+  const jaTinha = !!d.oficial;
+  const oficial = { sel, definidaEm: Date.now() };
+  if(btn){ btn.disabled = true; }
+  try {
+    await fbUpdate(`drafts/${d.id}`, { oficial });
+  } catch(err){
+    toast('Erro ao salvar: ' + (err.message || err), '#c0392b');
+    if(btn) btn.disabled = false;
+    return;
+  }
+  if(btn) btn.disabled = false;
+  if(!fbReady){ d.oficial = oficial; lsSave(); renderDrafts(); renderAdmDrafts(); }
+  closeOv('ov-oficial');
+  S.oficialEdit = null;
+  toast(jaTinha ? '✅ Escalação oficial atualizada' : '✅ Escalação oficial definida!', '#13803a');
+  pedirNotificacao({
+    titulo: jaTinha ? '🔄 ESCALAÇÃO ATUALIZADA!' : '⚽ TIMES DEFINIDOS!',
+    texto: `Confira a escalação oficial da Rodada ${d.rodada}!`,
+    url: '/draft'
+  });
+}
+
+async function removerOficial(){
+  const ed = S.oficialEdit;
+  if(!ed) return;
+  const d = S.drafts.find(x => x.id === ed.draftId);
+  if(!d || !d.oficial) return;
+  if(!confirm(`Remover a escalação oficial da Rodada ${d.rodada}? A página volta a aceitar sugestões.`)) return;
+  await fbRemove(`drafts/${d.id}/oficial`);
+  if(!fbReady){ delete d.oficial; lsSave(); renderDrafts(); renderAdmDrafts(); }
+  closeOv('ov-oficial');
+  S.oficialEdit = null;
+  toast('Escalação oficial removida', '#666');
+}
+
+// ─── PÁGINA PÚBLICA: arte oficial ────────────────────────
+const _oficialImgCache = {};   // chave → objectURL
+
+function oficialChave(d){ return `${d.id}:${d.oficial.definidaEm || 0}`; }
+
+function oficialCardHtml(d){
+  const meta = [escFmtData(d.data), escFmtHora(d.horario), (d.local || '').toUpperCase()]
+    .filter(Boolean).map(escHtml).join('<br>');
+  const url = _oficialImgCache[oficialChave(d)];
+  return `<div class="esc-card oficial-card" id="esc-card-${d.id}">
+    <div class="esc-head">
+      <h3><small>RODADA</small>${d.rodada}</h3>
+      <div class="esc-meta">${meta}</div>
+    </div>
+    <div class="oficial-selo">✓ Escalação oficial</div>
+    <img class="oficial-img" id="of-img-${d.id}" alt="Escalação oficial da Rodada ${d.rodada}" ${url ? `src="${url}"` : ''}>
+    ${url ? '' : `<div class="oficial-gerando" id="of-gerando-${d.id}">Gerando a arte…</div>`}
+    <div class="esc-actions">
+      <button class="btn btn-pri" onclick="oficialCompartilhar('${d.id}', this)">📲 Compartilhar</button>
+    </div>
+  </div>`;
+}
+
+async function oficialBlob(d){
+  const t = oficialTimes(d);
+  const canvas = await escBuildImage(d, t.branco, t.preto, true);
+  return new Promise((res, rej) => canvas.toBlob(b => b ? res(b) : rej(new Error('falha ao gerar a imagem')), 'image/png'));
+}
+
+async function oficialRenderImg(d){
+  const chave = oficialChave(d);
+  if(_oficialImgCache[chave]) return;
+  _oficialImgCache[chave] = '';   // em andamento
+  try {
+    const blob = await oficialBlob(d);
+    _oficialImgCache[chave] = URL.createObjectURL(blob);
+    const img = document.getElementById(`of-img-${d.id}`);
+    if(img) img.src = _oficialImgCache[chave];
+    const g = document.getElementById(`of-gerando-${d.id}`);
+    if(g) g.remove();
+  } catch(err){
+    delete _oficialImgCache[chave];
+    console.error('[oficial] erro ao gerar arte:', err);
+  }
+}
+
+async function oficialCompartilhar(draftId, btn){
+  const d = S.drafts.find(x => x.id === draftId);
+  if(!d || !d.oficial) return;
+  const label = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = 'Gerando…'; }
+  try {
+    const blob = await oficialBlob(d);
+    abrirCompartilhamento(blob, `escalacao-oficial-rodada-${d.rodada}.png`,
+      `⚽ Escalação oficial da Rodada ${d.rodada}! Bora, bagres!`, `Oficial · Rodada ${d.rodada}`);
+  } catch(err){
+    toast('Erro ao gerar a imagem: ' + (err.message || err), '#c0392b');
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = label; }
+  }
+}
+
+// ─── ADMIN → PARTIDAS: preencher com a escalação oficial ──
+function renderPartidaImport(){
+  const sel = document.getElementById('m-import');
+  if(!sel) return;
+  const atual = sel.value;
+  const ops = S.drafts.filter(d => d.oficial)
+    .map(d => `<option value="${d.id}">Rodada ${d.rodada}${d.data ? ' · ' + fmtDate(d.data) : ''}</option>`).join('');
+  sel.innerHTML = ops ? `<option value="">Escolha a rodada…</option>${ops}` : '<option value="">Nenhuma escalação oficial ainda</option>';
+  if(atual) sel.value = atual;
+}
+
+function preencherPartidaComOficial(){
+  const id = document.getElementById('m-import').value;
+  const d = S.drafts.find(x => x.id === id);
+  if(!d || !d.oficial){ toast('Escolha uma rodada com escalação oficial', '#c0392b'); return; }
+  const t = oficialTimes(d);
+  setTipo('normal');
+  document.getElementById('m-rodada').value = `Rodada ${d.rodada}`;
+  document.getElementById('m-data').value = d.data || '';
+  document.getElementById('m-t1').value = 'BRANCO';
+  document.getElementById('m-t2').value = 'PRETO';
+  setPcheckSelected('check-t1', t.branco.filter(e => !e.guest).map(e => e.key));
+  setPcheckSelected('check-t2', t.preto.filter(e => !e.guest).map(e => e.key));
+  if(typeof updateRatingsUI === 'function') updateRatingsUI();
+  S.partidaDoDraft = d.id;
+  const convidados = [...t.branco, ...t.preto].filter(e => e.guest).length;
+  toast(convidados
+    ? `Times preenchidos! (${convidados} convidado${convidados !== 1 ? 's' : ''} fica${convidados !== 1 ? 'm' : ''} de fora da tabela)`
+    : 'Times preenchidos! Agora é só o placar e os gols.', '#13803a');
+}
+
+// Depois de registrar a partida: oferece abrir a votação do BOTM
+async function oferecerVotacao(dadosPartida){
+  const jogadores = [...(dadosPartida.p1 || []), ...(dadosPartida.p2 || [])];
+  if(!jogadores.length) return;
+  if(S.polls.some(p => p.status === 'open' && p.rodada.startsWith(dadosPartida.rodada))) return;
+  if(!confirm(`Abrir agora a votação do Bagre of the Match da ${dadosPartida.rodada} com os ${jogadores.length} jogadores que jogaram?`)) return;
+  const rodada = dadosPartida.data ? `${dadosPartida.rodada} - ${fmtDate(dadosPartida.data)}` : dadosPartida.rodada;
+  const poll = {
+    rodada,
+    players: jogadores.map(id => ({ id, nome: nameById(id) })),
+    votes: {},
+    status: 'open'
+  };
+  if(fbReady){ await fbPush('polls', poll); }
+  else { S.polls.unshift({ ...poll, id: Date.now().toString() }); lsSave(); renderAdmPolls(); renderPolls(); }
+  toast('🗳️ Votação aberta!', '#13803a');
+  pedirNotificacao({
+    titulo: '🗳️ VOTAÇÃO ABERTA!',
+    texto: `${rodada} — Vote no seu Bagre!!`,
+    url: '/votacao'
+  });
 }
 
 // ─── RENDER ALL ──────────────────────────────────────────
