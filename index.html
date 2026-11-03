@@ -1094,6 +1094,26 @@ nav .nav-btn[data-page="votacao"].on{
   border:1px solid rgba(29,111,255,.4);border-radius:12px;padding:10px 12px;margin-bottom:14px;
   font-size:.85rem;line-height:1.4}
 .install-hint.show{display:flex}
+.elenco-grupo{margin-bottom:26px}
+.elenco-grupo-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.elenco-grupo-head h3{font-family:'Anton',sans-serif;font-weight:400;font-size:1.5rem;letter-spacing:2px;color:#fff;text-transform:uppercase}
+.elenco-grupo-head .linha{flex:1;height:2px;background:linear-gradient(90deg,var(--gold),transparent)}
+.elenco-grupo-head .qtd{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:1.5px;color:var(--gold)}
+.elenco-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+@media(max-width:520px){.elenco-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
+.atleta{position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;cursor:default;
+  background:linear-gradient(160deg,#1d3a8a,#0b1a4a 60%,#08080d);border:1px solid rgba(245,197,24,.25)}
+.atleta img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 20%}
+.atleta .atl-ini{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Anton',sans-serif;font-size:3.4rem;color:rgba(245,197,24,.35)}
+.atleta .atl-num{position:absolute;top:8px;left:10px;font-family:'Anton',sans-serif;font-size:2rem;line-height:1;
+  color:var(--gold);text-shadow:0 2px 8px rgba(0,0,0,.7)}
+.atleta .atl-info{position:absolute;left:0;right:0;bottom:0;padding:34px 10px 10px;
+  background:linear-gradient(180deg,transparent,rgba(5,8,20,.92) 55%)}
+.atleta .atl-nome{font-family:'Anton',sans-serif;font-size:1.05rem;line-height:1.1;color:#fff;text-transform:uppercase;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.atleta .atl-pos{font-family:'Barlow Condensed',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--gold);margin-top:2px}
 .oficial-card{border-color:rgba(245,197,24,.5)}
 .oficial-selo{display:inline-block;margin:-4px 0 12px;padding:5px 14px;border-radius:20px;
   background:linear-gradient(180deg,#ffe27a,#d9a50f);color:#0b1a4a;
@@ -1166,6 +1186,7 @@ nav .nav-btn[data-page="votacao"].on{
     <a class="nav-btn" href="/partidas" data-page="partidas">Partidas</a>
     <a class="nav-btn" href="/lista" data-page="lista">Lista</a>
     <a class="nav-btn" href="/draft" data-page="draft">Draft</a>
+    <a class="nav-btn" href="/elenco" data-page="elenco">Elenco</a>
     <a class="nav-btn" href="/artilheiros" data-page="artilheiros">Artilheiros</a>
     <a class="nav-btn" href="/botm" data-page="botm">BOTM</a>
     <a class="nav-btn" href="/votacao" data-page="votacao">Votação</a>
@@ -1177,6 +1198,7 @@ nav .nav-btn[data-page="votacao"].on{
      <a href="/partidas" data-page="partidas">Partidas</a>
      <a href="/lista" data-page="lista">Lista</a>
      <a href="/draft" data-page="draft">Draft</a>
+     <a href="/elenco" data-page="elenco">Elenco</a>
      <a href="/artilheiros" data-page="artilheiros">Artilheiros</a>
      <a href="/botm" data-page="botm">BOTM</a>
 </div>
@@ -1231,6 +1253,14 @@ nav .nav-btn[data-page="votacao"].on{
     <div class="sh" style="margin-top:1rem"><h2>Votação BOTM</h2><div class="bar"></div><div class="tag">Craque do Jogo</div></div>
     <div id="polls-list">
       <div class="panel"><div class="empty"><div class="ico">🗳️</div><p>Nenhuma votação aberta</p></div></div>
+    </div>
+  </div>
+
+  <!-- ELENCO -->
+  <div id="page-elenco" class="page">
+    <div class="sh" style="margin-top:1rem"><h2>Elenco</h2><div class="bar"></div><div class="tag" id="elenco-total">Real Bagrid</div></div>
+    <div id="elenco-list">
+      <div class="panel"><div class="empty"><div class="ico">👕</div><p>Nenhum jogador cadastrado</p></div></div>
     </div>
   </div>
 
@@ -1867,6 +1897,7 @@ const PAGE_PATH = {
   partidas:    '/partidas',
   lista:       '/lista',
   draft:       '/draft',
+  elenco:      '/elenco',
   artilheiros: '/artilheiros',
   botm:        '/botm',
   votacao:     '/votacao'
@@ -1878,6 +1909,7 @@ const PATH_PAGE = {
   'partidas':    'partidas',
   'lista':       'lista',
   'draft':       'draft',
+  'elenco':      'elenco',
   'artilheiros': 'artilheiros',
   'botm':        'botm',
   'votacao':     'votacao'
@@ -1888,6 +1920,7 @@ const PAGE_META = {
   partidas:    { t:'Partidas · Real Bagrid FC',             d:'Resultados e escalações de todas as partidas do Real Bagrid FC.' },
   lista:       { t:'Lista · Real Bagrid FC',                d:'Confirme sua presença no próximo jogo do Real Bagrid FC.' },
   draft:       { t:'Draft · Real Bagrid FC',                d:'Sorteio e montagem dos times do Real Bagrid FC em tempo real.' },
+  elenco:      { t:'Elenco · Real Bagrid FC',                d:'Conheça o elenco do Real Bagrid FC: goleiros, zagueiros, meias e atacantes.' },
   artilheiros: { t:'Artilheiros · Real Bagrid FC',          d:'Ranking de gols e assistências dos jogadores do Real Bagrid FC.' },
   botm:        { t:'BOTM · Real Bagrid FC',                 d:'Bagre of the Month — ranking dos eleitos mês a mês no Real Bagrid FC.' },
   votacao:     { t:'Votação · Real Bagrid FC',              d:'Vote no craque da rodada e no BOTM do Real Bagrid FC.' }
@@ -5287,6 +5320,50 @@ async function oferecerVotacao(dadosPartida){
   });
 }
 
+// ═══════════════════════════════════════════════════════
+// ─── ELENCO ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+const ELENCO_GRUPOS = [
+  { id: 'GK',  titulo: 'Goleiros',     um: 'Goleiro',  teste: p => p === 'GK' },
+  { id: 'ZAG', titulo: 'Zagueiros',    um: 'Zagueiro', teste: p => /^ZAG/.test(p) },
+  { id: 'MEI', titulo: 'Meias',        um: 'Meia',     teste: p => /^MEI/.test(p) },
+  { id: 'ATA', titulo: 'Atacantes',    um: 'Atacante', teste: p => /^ATA/.test(p) },
+  { id: '',    titulo: 'Sem posição',  um: '',         teste: p => !p || !/^(GK|ZAG|MEI|ATA)/.test(p) }
+];
+
+function renderElenco(){
+  const el = document.getElementById('elenco-list');
+  if(!el) return;
+  const tot = document.getElementById('elenco-total');
+  if(tot) tot.textContent = `${S.jogadores.length} atleta${S.jogadores.length !== 1 ? 's' : ''}`;
+  if(!S.jogadores.length){
+    el.innerHTML = '<div class="panel"><div class="empty"><div class="ico">👕</div><p>Nenhum jogador cadastrado</p></div></div>';
+    return;
+  }
+  const num = j => { const n = parseInt(j.numero, 10); return isNaN(n) ? 1000 : n; };
+  el.innerHTML = ELENCO_GRUPOS.map(g => {
+    const lista = S.jogadores.filter(j => g.teste(j.posicao || ''))
+      .sort((a, b) => num(a) - num(b) || a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
+    if(!lista.length) return '';
+    return `<div class="elenco-grupo">
+      <div class="elenco-grupo-head"><h3>${g.titulo}</h3><div class="linha"></div><span class="qtd">${lista.length}</span></div>
+      <div class="elenco-grid">
+        ${lista.map(j => {
+          const ini = (j.nome || '').substring(0, 2).toUpperCase();
+          return `<div class="atleta">
+            ${j.foto ? `<img src="${j.foto}" alt="${escHtml(j.nome)}" loading="lazy">` : `<div class="atl-ini">${escHtml(ini)}</div>`}
+            ${j.numero ? `<div class="atl-num">${escHtml(j.numero)}</div>` : ''}
+            <div class="atl-info">
+              <div class="atl-nome">${escHtml(j.nome)}</div>
+              ${g.um ? `<div class="atl-pos">${g.um}</div>` : ''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
 // ─── RENDER ALL ──────────────────────────────────────────
 function renderAll(){
 renderStandings();
@@ -5303,6 +5380,7 @@ renderDrafts();
 renderAdmDrafts();
 renderListas();
 renderAdmListas();
+renderElenco();
 }
 
 // ─── INIT ────────────────────────────────────────────────
